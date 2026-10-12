@@ -35,12 +35,31 @@ supabase secrets set \
 
 A API do Google AI Studio oferece uma faixa gratuita com limites e cotas; ela não é ilimitada. Consulte as condições atuais da sua conta e região antes de publicar para muitos usuários. Consulte também os limites vigentes da Tavily.
 
+## Acesso com código de e-mail
+
+A tela de acesso envia um código de seis dígitos e valida o código no próprio app. Para que o e-mail contenha o código (em vez de um link), no painel do Supabase abra **Authentication → Email Templates → Magic Link** e use `{{ .Token }}` no corpo do e-mail. Exemplo:
+
+```html
+<h2>Seu código de acesso ao Tutor PCPA</h2>
+<p>Digite este código no aplicativo para confirmar seu e-mail:</p>
+<p style="font-size: 24px; font-weight: bold; letter-spacing: 6px;">{{ .Token }}</p>
+<p>Se você não solicitou este código, ignore esta mensagem.</p>
+```
+
+O código chama `signInWithOtp` para enviá-lo e `verifyOtp` para validá-lo. Se o template continuar usando `{{ .ConfirmationURL }}`, o Supabase enviará um link e a caixa de seis dígitos do app não poderá validá-lo. Para permitir que novos estudantes criem uma conta ao informar o e-mail, mantenha habilitado o cadastro de novos usuários no provedor de e-mail.
+
+O provedor de e-mail padrão do Supabase é restrito a testes: sem SMTP próprio, ele só entrega mensagens a endereços autorizados da equipe do projeto e tem limite baixo de envio. Para disponibilizar o acesso aos estudantes, configure um SMTP transacional em **Authentication → SMTP Settings**. Consulte os [limites e requisitos atuais de envio](https://supabase.com/docs/guides/auth/auth-smtp).
+
+As ferramentas de estudo continuam acessíveis no modo demonstração sem entrar. Confirmar o e-mail cria a sessão para sincronização do progresso e para recursos que exigem autenticação.
+
 ## Configuração do frontend e publicação
 
-As variáveis públicas `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` são configuradas no ambiente de publicação do frontend. Elas não substituem as secrets acima; nunca coloque as chaves Tavily ou Google em variáveis `VITE_*`.
+As variáveis públicas `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` são configuradas no ambiente de publicação do frontend. O código também aceita a variável legada `VITE_SUPABASE_ANON_KEY` caso a variável de chave publicável não esteja definida. Elas não substituem as secrets acima; nunca coloque as chaves Tavily ou Google em variáveis `VITE_*`.
 
 Migrations, publicação das Edge Functions e demais passos de implantação dependem do projeto Supabase usado. Referências oficiais:
 
+- [Templates de e-mail de autenticação e códigos OTP](https://supabase.com/docs/guides/auth/auth-email-templates)
+- [Configuração de SMTP para e-mails de autenticação](https://supabase.com/docs/guides/auth/auth-smtp)
 - [Secrets das Supabase Edge Functions](https://supabase.com/docs/guides/functions/secrets)
 - [Google AI Studio — modelos da API](https://ai.google.dev/gemini-api/docs/models)
 - [Google AI Studio — preços e cotas](https://ai.google.dev/gemini-api/docs/pricing)

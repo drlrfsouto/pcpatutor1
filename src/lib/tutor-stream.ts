@@ -12,16 +12,16 @@ export async function streamTutorReply(
   if (!isSupabaseConfigured) throw new Error('O Tutor não está disponível no momento. Tente novamente mais tarde.');
   const { data: { session } } = await supabase.auth.getSession();
   const url = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '');
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) throw new Error('O Tutor não está disponível no momento. Tente novamente mais tarde.');
+  const publicKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !publicKey) throw new Error('O Tutor não está disponível no momento. Tente novamente mais tarde.');
 
   const response = await fetch(`${url}/functions/v1/pcpa-tutor`, {
     method: 'POST',
     signal,
     headers: {
       'Content-Type': 'application/json',
-      apikey: anonKey,
-      Authorization: `Bearer ${session?.access_token ?? anonKey}`,
+      apikey: publicKey,
+      Authorization: `Bearer ${session?.access_token ?? publicKey}`,
       Accept: 'text/event-stream',
     },
     body: JSON.stringify({
