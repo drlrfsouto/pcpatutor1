@@ -1,0 +1,66 @@
+import { ExternalLink, FileCheck2, PencilLine, Sparkles } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { QuestionMetadata, QuestionSource } from '@/integrations/supabase/types';
+import { cn } from '@/lib/utils';
+
+interface QuestionSourceBadgeProps {
+  source: QuestionSource;
+  metadata?: QuestionMetadata | Record<string, never> | null;
+  className?: string;
+}
+
+export function QuestionSourceBadge({ source, metadata, className }: QuestionSourceBadgeProps) {
+  const data = metadata as QuestionMetadata | undefined;
+  const config = {
+    concurso_real: {
+      icon: FileCheck2,
+      label: 'Questão real',
+      className: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15',
+      description: data?.concurso ? `${data.concurso}${data.banca ? ` · ${data.banca}` : ''}${data.ano ? ` · ${data.ano}` : ''}` : 'Questão identificada em fonte de concurso.',
+    },
+    ai_generated: {
+      icon: Sparkles,
+      label: 'Gerada por IA',
+      className: 'border-sky-400/30 bg-sky-400/10 text-sky-300 hover:bg-sky-400/15',
+      description: 'Questão criada com apoio de IA; não é reprodução de prova oficial.',
+    },
+    manual: {
+      icon: PencilLine,
+      label: 'Material demonstrativo',
+      className: 'border-slate-500/35 bg-slate-400/10 text-slate-300 hover:bg-slate-400/15',
+      description: 'Questão cadastrada manualmente para demonstração ou estudo.',
+    },
+  }[source];
+  const Icon = config.icon;
+  const safeUrl = data?.url_fonte && /^https?:\/\//i.test(data.url_fonte) ? data.url_fonte : undefined;
+
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge className={cn('cursor-help gap-1.5 transition-colors', config.className, className)}>
+            <Icon aria-hidden="true" className="h-3 w-3 shrink-0" />
+            <span>{config.label}</span>
+            {safeUrl && <ExternalLink aria-hidden="true" className="h-3 w-3 shrink-0" />}
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          <div className="space-y-2">
+            <p className="font-medium">{config.description}</p>
+            {source === 'concurso_real' && data && (
+              <div className="space-y-1 border-t border-line pt-2 text-xs text-slate-400">
+                {data.cargo && <p>Cargo: {data.cargo}</p>}
+                {data.numero_questao && <p>Questão nº {data.numero_questao}</p>}
+                {data.gabarito_oficial && <p>Gabarito oficial informado: {data.gabarito_oficial}</p>}
+              </div>
+            )}
+            {safeUrl && <a href={safeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-cyan-300 hover:underline">Ver fonte original <ExternalLink className="h-3 w-3" /></a>}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+export default QuestionSourceBadge;

@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #07111f;
+  color: #e9f0f7;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; background: #07111f; scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, textarea, select { font: inherit; }
+button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+::selection { background: rgba(104, 240, 194, .25); color: #fff; }
+
+.app-background {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 72% -10%, rgba(22, 97, 107, .18), transparent 36rem),
+    radial-gradient(ellipse at -12% 68%, rgba(33, 57, 94, .14), transparent 32rem),
+    #07111f;
+}
+
+.soft-grid {
+  background-image: linear-gradient(rgba(148, 163, 184, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, .025) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.48), transparent 72%);
+  pointer-events: none;
+}
+
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #2a3c50 transparent; }
+.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #26394c; border-radius: 999px; }
+
+.focus-ring:focus-visible { outline: 2px solid rgba(104, 240, 194, .72); outline-offset: 3px; }
+
+@keyframes float-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-float-in { animation: float-in .35s ease-out both; }
+
+@layer components {
+  .field-input, .field-select {
+    @apply h-10 w-full rounded-xl border border-line bg-[#07111f]/70 px-3 text-sm text-slate-100 outline-none transition-colors focus:border-mint/50 focus:ring-2 focus:ring-mint/10;
+  }
+  .field-input::placeholder { @apply text-slate-500; }
+  .field-select { @apply appearance-none; }
+  .field-select option { background: #0c1928; color: #e9f0f7; }
+}
+
+/* Mobile: avoid expensive decorative paints and preserve native touch scrolling. */
+@media (max-width: 767px) {
+  .app-background {
+    background: radial-gradient(ellipse at 85% -10%, rgba(22, 97, 107, .13), transparent 26rem), #07111f;
+  }
+  .soft-grid { display: none; }
+  .mobile-nav-shell {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    overscroll-behavior-x: contain;
+  }
+}
+
+/* Prevent iOS Safari from zooming the page when a student focuses a form field. */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]), textarea, select { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

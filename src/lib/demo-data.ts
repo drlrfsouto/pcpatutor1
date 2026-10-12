@@ -1,0 +1,161 @@
+import type { PcpaQuestion } from '@/integrations/supabase/types';
+import type { SubjectName } from '@/lib/constants/subjects';
+
+const manual = (overrides: Partial<PcpaQuestion> & Pick<PcpaQuestion, 'id' | 'subject' | 'topic' | 'prompt' | 'options' | 'answer' | 'gabarito_comentado' | 'flashcard_summary'>): PcpaQuestion => ({
+  type: 'multipla_escolha',
+  difficulty: 'intermediaria',
+  source: 'manual',
+  metadata: {},
+  ponto_de_atencao: '',
+  needs_verification: false,
+  created_at: '2026-01-01T12:00:00.000Z',
+  ...overrides,
+});
+
+// Questões demonstrativas elaboradas para a prévia. Não são reproduções de provas oficiais.
+export const DEMO_QUESTIONS: PcpaQuestion[] = [
+  manual({
+    id: 'demo-portugues-01', subject: 'Língua Portuguesa', topic: 'Crase', difficulty: 'facil',
+    prompt: 'Assinale a alternativa em que o emprego do acento indicativo de crase está correto.',
+    options: [
+      'A) A equipe chegou à pé ao local da ocorrência.',
+      'B) O investigador referiu-se à ocorrência registrada no plantão.',
+      'C) O relatório foi entregue à uma testemunha.',
+      'D) A servidora encaminhou o documento à ela.',
+      'E) A equipe viajou à Belém para a capacitação.',
+    ], answer: 'B',
+    gabarito_comentado: 'A alternativa B está correta: o verbo “referir-se” rege a preposição “a”, e “ocorrência” admite o artigo feminino “a”; a fusão resulta em “à”. Nas demais: a expressão é “a pé”; não há crase antes do artigo indefinido “uma”; não se usa crase antes do pronome pessoal “ela”; e, no uso corrente, diz-se “a Belém”, sem artigo feminino antes do nome da cidade.',
+    ponto_de_atencao: 'Confira primeiro se há preposição exigida pelo termo anterior e, depois, se o termo seguinte admite artigo feminino. A presença de uma palavra feminina, sozinha, não basta para justificar a crase.',
+    flashcard_summary: 'Crase = preposição “a” + artigo feminino “a”.',
+  }),
+  manual({
+    id: 'demo-redacao-01', subject: 'Redação', topic: 'Texto dissertativo-argumentativo', difficulty: 'facil',
+    prompt: 'Em um texto dissertativo-argumentativo, qual é a função mais característica da tese apresentada na introdução?',
+    options: [
+      'A) Repetir integralmente o tema sem indicar um posicionamento.',
+      'B) Apresentar o ponto de vista que será defendido ao longo do texto.',
+      'C) Antecipar todas as citações que serão usadas na conclusão.',
+      'D) Substituir os argumentos desenvolvidos nos parágrafos seguintes.',
+      'E) Encerrar a discussão com uma proposta detalhada de intervenção.',
+    ], answer: 'B',
+    gabarito_comentado: 'A tese explicita a posição central do autor diante do tema. Os parágrafos de desenvolvimento devem sustentá-la com argumentos organizados e pertinentes. A introdução pode contextualizar o assunto, mas não deve apenas repeti-lo; tampouco substitui o desenvolvimento. A conclusão retoma a linha argumentativa e, conforme a proposta, pode apresentar encaminhamentos.',
+    ponto_de_atencao: 'Tema e tese não são a mesma coisa: o tema indica sobre o que se escreve; a tese revela o que se defende sobre esse assunto.',
+    flashcard_summary: 'Tese: posicionamento que organiza a argumentação.',
+  }),
+  manual({
+    id: 'demo-logica-01', subject: 'Raciocínio Lógico', topic: 'Sequências numéricas', difficulty: 'facil',
+    prompt: 'Observe a sequência 2, 6, 12, 20, ... Qual é o próximo termo, seguindo o mesmo padrão?',
+    options: ['A) 24', 'B) 28', 'C) 30', 'D) 32', 'E) 36'], answer: 'C',
+    gabarito_comentado: 'As diferenças entre termos consecutivos são 4, 6 e 8. Seguindo o padrão, a próxima diferença é 10. Assim, 20 + 10 = 30. Outra forma de perceber a regra é escrever os termos como 1×2, 2×3, 3×4 e 4×5; o próximo é 5×6 = 30.',
+    ponto_de_atencao: 'Em sequências, compare tanto as diferenças entre termos quanto possíveis relações multiplicativas. Confirme se a regra escolhida explica todos os termos apresentados.',
+    flashcard_summary: 'Sequência: diferenças 4, 6, 8, 10; próximo termo = 30.',
+  }),
+  manual({
+    id: 'demo-informatica-01', subject: 'Informática', topic: 'Segurança na web', difficulty: 'facil',
+    prompt: 'Ao acessar um site por HTTPS, qual proteção é fornecida principalmente pela conexão segura?',
+    options: [
+      'A) Impede que qualquer arquivo malicioso seja baixado no dispositivo.',
+      'B) Criptografa a comunicação e permite verificar a identidade do servidor por certificado.',
+      'C) Garante que o conteúdo publicado pelo site seja sempre verdadeiro.',
+      'D) Substitui a necessidade de autenticação por senha.',
+      'E) Torna anônima toda a atividade do usuário na internet.',
+    ], answer: 'B',
+    gabarito_comentado: 'HTTPS usa TLS para proteger a comunicação entre navegador e servidor contra leitura ou alteração em trânsito, e o certificado ajuda o navegador a verificar a identidade do servidor. Isso não certifica a veracidade do conteúdo, não elimina riscos de malware, não dispensa autenticação e não torna o usuário anônimo.',
+    ponto_de_atencao: 'HTTPS protege o canal de comunicação; não é um selo de que o site, o arquivo ou a informação sejam confiáveis.',
+    flashcard_summary: 'HTTPS/TLS protege a comunicação; não garante conteúdo confiável.',
+  }),
+  manual({
+    id: 'demo-administrativo-01', subject: 'Direito Administrativo', topic: 'Princípios da Administração Pública', difficulty: 'intermediaria',
+    prompt: 'Uma campanha institucional utiliza o nome e a imagem de um agente público para promover sua atuação pessoal. Qual princípio administrativo é diretamente relacionado à vedação de promoção pessoal na publicidade dos atos públicos?',
+    options: [
+      'A) Impessoalidade.',
+      'B) Continuidade do serviço público.',
+      'C) Autotutela.',
+      'D) Especialidade.',
+      'E) Presunção de legitimidade.',
+    ], answer: 'A', needs_verification: true,
+    gabarito_comentado: 'A impessoalidade exige que a atuação e a comunicação institucional se orientem pelo interesse público, sem transformar a publicidade oficial em promoção pessoal de agentes. Os demais itens são princípios ou características relevantes do Direito Administrativo, mas não respondem diretamente à situação descrita. Para uso em prova ou fundamentação jurídica, confira a redação vigente no texto oficial da Constituição Federal e no edital aplicável.',
+    ponto_de_atencao: 'A publicidade institucional não deve ser confundida com propaganda pessoal. A questão destaca exatamente a associação da comunicação pública à imagem do agente.',
+    flashcard_summary: 'Impessoalidade: publicidade oficial sem promoção pessoal.',
+  }),
+  manual({
+    id: 'demo-rju-01', subject: 'Legislação Administrativa - Regime Jurídico Único - RJU', topic: 'Regime jurídico', difficulty: 'intermediaria',
+    prompt: 'Em linhas gerais, qual é a finalidade de um regime jurídico único de servidores públicos?',
+    options: [
+      'A) Definir exclusivamente as metas fiscais de cada órgão.',
+      'B) Reunir regras sobre a relação funcional entre o ente público e seus servidores abrangidos.',
+      'C) Substituir todas as normas constitucionais relativas à Administração Pública.',
+      'D) Regulamentar apenas os contratos privados firmados pelo Estado.',
+      'E) Criar regras penais aplicáveis indistintamente a qualquer cidadão.',
+    ], answer: 'B', needs_verification: true,
+    gabarito_comentado: 'Em termos gerais, um regime jurídico de servidores organiza direitos, deveres e aspectos da relação funcional dos agentes públicos a que se aplica. A questão é conceitual: não substitui a Constituição, não se limita a metas fiscais ou contratos privados e não cria, por si só, regras penais gerais. Para detalhes sobre o Pará, consulte a versão vigente da Lei Estadual nº 5.810/1994 e o edital do concurso.',
+    ponto_de_atencao: 'Atenção ao alcance do regime: a lei aplicável, as categorias abrangidas e eventuais alterações devem ser confirmadas na legislação estadual vigente.',
+    flashcard_summary: 'RJU: regras da relação funcional dos servidores abrangidos.',
+  }),
+  manual({
+    id: 'demo-constitucional-01', subject: 'Direito Constitucional', topic: 'Segurança pública', difficulty: 'intermediaria',
+    prompt: 'Considerando o § 4º do Art. 144 da Constituição Federal, assinale a alternativa que descreve atribuição das polícias civis, ressalvada a competência da União.',
+    options: [
+      'A) Realizar exclusivamente o policiamento ostensivo e a preservação da ordem pública.',
+      'B) Exercer funções de polícia judiciária e apurar infrações penais, exceto as militares.',
+      'C) Julgar os crimes comuns praticados em território estadual.',
+      'D) Exercer com exclusividade as funções de polícia judiciária da União.',
+      'E) Executar a defesa civil em todo o território nacional.',
+    ], answer: 'B', needs_verification: true,
+    gabarito_comentado: 'A alternativa B corresponde à atribuição prevista para as polícias civis no § 4º do Art. 144 da Constituição Federal, ressalvada a competência da União e excetuadas as infrações penais militares. O policiamento ostensivo é atribuição da polícia militar, enquanto julgamento cabe ao Poder Judiciário. Para estudo jurídico, confira o texto constitucional consolidado no portal oficial do Planalto.',
+    ponto_de_atencao: 'Não confunda polícia judiciária e investigação com policiamento ostensivo. A ressalva relativa à competência da União e a exceção das infrações militares são partes importantes do dispositivo.',
+    flashcard_summary: 'Art. 144, § 4º, CF: polícia civil — polícia judiciária e apuração, exceto militares.',
+  }),
+  manual({
+    id: 'demo-penal-01', subject: 'Direito Penal Geral', topic: 'Dolo e culpa', difficulty: 'intermediaria',
+    prompt: 'Em uma situação hipotética, a pessoa prevê que sua conduta pode produzir um resultado, mas acredita sinceramente que conseguirá evitá-lo. Qual modalidade subjetiva é tradicionalmente associada a essa descrição?',
+    options: [
+      'A) Dolo direto.',
+      'B) Dolo eventual.',
+      'C) Culpa consciente.',
+      'D) Culpa inconsciente.',
+      'E) Erro de proibição inevitável.',
+    ], answer: 'C', needs_verification: true,
+    gabarito_comentado: 'Na descrição apresentada, o agente prevê a possibilidade do resultado, mas confia que ele não ocorrerá. Essa é a formulação didática usual da culpa consciente. No dolo eventual, por contraste, o agente prevê o resultado e assume o risco de produzi-lo. A classificação depende dos fatos e da interpretação jurídica do caso concreto; confira a redação vigente do Código Penal e a doutrina indicada no edital.',
+    ponto_de_atencao: 'A distinção central é a atitude diante do resultado previsto: confiança na não ocorrência, na culpa consciente; assunção do risco, no dolo eventual.',
+    flashcard_summary: 'Culpa consciente: prevê o resultado, mas confia que não ocorrerá.',
+  }),
+  manual({
+    id: 'demo-processual-01', subject: 'Direito Processual Penal', topic: 'Inquérito policial', difficulty: 'intermediaria',
+    prompt: 'Em termos gerais, qual é a finalidade do inquérito policial?',
+    options: [
+      'A) Substituir o processo judicial e proferir a sentença penal.',
+      'B) Reunir elementos informativos sobre a infração penal e sua autoria para subsidiar a persecução penal.',
+      'C) Aplicar diretamente pena privativa de liberdade ao investigado.',
+      'D) Garantir, por si só, condenação ao final do processo.',
+      'E) Impedir que o Ministério Público forme opinião sobre a investigação.',
+    ], answer: 'B', needs_verification: true,
+    gabarito_comentado: 'O inquérito policial é procedimento investigativo voltado à apuração de elementos relacionados à materialidade e à autoria de infrações penais. Ele não é processo judicial, não aplica pena e não garante condenação. A avaliação desses elementos e as decisões posteriores pertencem às autoridades competentes, conforme a legislação aplicável. Consulte o Código de Processo Penal consolidado para estudar regras, prazos e exceções.',
+    ponto_de_atencao: 'Não trate elemento informativo como sentença nem confunda a fase investigativa com a fase processual. A questão pergunta pela finalidade geral do inquérito.',
+    flashcard_summary: 'Inquérito: procedimento investigativo que reúne elementos informativos.',
+  }),
+  manual({
+    id: 'demo-especial-01', subject: 'Legislação Especial', topic: 'Lei Maria da Penha', difficulty: 'intermediaria',
+    prompt: 'A Lei nº 11.340/2006 é conhecida como Lei Maria da Penha. Em termos gerais, qual é seu objeto central?',
+    options: [
+      'A) Estabelecer normas gerais de trânsito em vias urbanas.',
+      'B) Criar mecanismos para coibir e prevenir a violência doméstica e familiar contra a mulher.',
+      'C) Disciplinar exclusivamente crimes contra a Administração Pública.',
+      'D) Instituir o regime jurídico dos servidores públicos do Pará.',
+      'E) Regulamentar a execução penal em todos os estabelecimentos prisionais.',
+    ], answer: 'B', needs_verification: true,
+    gabarito_comentado: 'A Lei nº 11.340/2006 é a legislação brasileira conhecida como Lei Maria da Penha e estabelece mecanismos voltados à prevenção e ao enfrentamento da violência doméstica e familiar contra a mulher. As outras alternativas se referem a áreas distintas. Para detalhes sobre âmbito de aplicação, medidas protetivas e alterações legislativas, consulte o texto atualizado da lei no portal oficial do Planalto.',
+    ponto_de_atencao: 'A identificação do objeto geral é diferente de memorizar cada medida prevista. Confira sempre o texto vigente, pois a legislação pode receber alterações.',
+    flashcard_summary: 'Lei 11.340/2006: prevenção e enfrentamento à violência doméstica e familiar contra a mulher.',
+  }),
+  manual({
+    id: 'demo-estatistica-01', subject: 'Estatística', topic: 'Medidas de tendência central', difficulty: 'facil',
+    prompt: 'Considere os valores 4, 6, 6, 8 e 11. Qual é a média aritmética desse conjunto?',
+    options: ['A) 6', 'B) 7', 'C) 7,5', 'D) 8', 'E) 35'], answer: 'B',
+    gabarito_comentado: 'A média aritmética é a soma dos valores dividida pela quantidade de observações. A soma é 4 + 6 + 6 + 8 + 11 = 35. Como há cinco valores, a média é 35 ÷ 5 = 7.',
+    ponto_de_atencao: 'Não confunda a média (soma dividida pela quantidade) com a mediana (valor central após ordenar) nem com a moda (valor mais frequente).',
+    flashcard_summary: 'Média aritmética = soma dos valores ÷ quantidade de valores.',
+  }),
+];
+
+export const DEMO_SUBJECT_COUNTS = (subject: SubjectName) => DEMO_QUESTIONS.filter((question) => question.subject === subject).length;
