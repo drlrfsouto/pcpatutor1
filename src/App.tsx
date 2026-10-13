@@ -20,6 +20,7 @@ const FlashcardSession = lazy(() => import('@/components/study/FlashcardSession'
 const WrongAnswersNotebook = lazy(() => import('@/components/study/WrongAnswersNotebook').then((module) => ({ default: module.WrongAnswersNotebook })));
 const TutorChat = lazy(() => import('@/components/chat/TutorChat').then((module) => ({ default: module.TutorChat })));
 const StatsView = lazy(() => import('@/components/stats/StatsView').then((module) => ({ default: module.StatsView })));
+const AdminAccessPanel = lazy(() => import('@/components/admin/AdminAccessPanel').then((module) => ({ default: module.AdminAccessPanel })));
 import { Button } from '@/components/ui/button';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
@@ -36,6 +37,7 @@ const VIEW_TITLES: Record<AppView, string> = {
   wrong: 'Caderno de erros',
   tutor: 'Tutor IA',
   stats: 'Estatísticas',
+  admin: 'Administração de acessos',
 };
 
 function PageLoading() {
@@ -46,6 +48,7 @@ function App() {
   const [activeView, setActiveView] = useState<AppView>('overview');
   const [session, setSession] = useState<Session | null>(null);
   const [accessStatus, setAccessStatus] = useState<AccessStatus>('signed-out');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [questionContext, setQuestionContext] = useState<PcpaQuestion | null>(null);
   const [practiceSubject, setPracticeSubject] = useState<SubjectName | undefined>();
@@ -62,6 +65,27 @@ function App() {
     });
     return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
+
+  useEffect(() => {
+    const userId = session?.user.id;
+    setIsAdmin(false);
+    if (!isSupabaseConfigured || !userId) return;
+
+    let current = true;
+    void supabase.functions.invoke('pcpa-admin-access', { body: { action: 'check' } })
+      .then(({ data, error }) => {
+        if (current) setIsAdmin(!error && data?.is_admin === true);
+      })
+      .catch(() => {
+        if (current) setIsAdmin(false);
+      });
+
+    return () => { current = false; };
+  }, [session?.user.id]);
+
+  useEffect(() => {
+    if (!isAdmin && activeView === 'admin') setActiveView('overview');
+  }, [activeView, isAdmin]);
 
   useEffect(() => {
     const userId = session?.user.id;
@@ -158,7 +182,7 @@ function App() {
     <div className="app-background relative min-h-screen overflow-x-clip">
       <div className="soft-grid absolute inset-0" />
       <div className="relative z-10 min-h-screen">
-        {showSidebar && <Sidebar active={activeView} onNavigate={navigate} streak={stats?.currentStreak ?? 0} />}
+        {showSidebar && <Sidebar active={activeView} onNavigate={navigate} streak={stats?.currentStreak ?? 0} isAdmin={isAdmin} />}
         <div className={`min-h-screen ${showSidebar ? 'md:pl-[254px]' : ''}`}>
           <header className="sticky top-0 z-20 hidden h-[68px] items-center justify-between border-b border-white/[0.055] bg-[#081321]/80 px-6 backdrop-blur-xl md:flex lg:px-8">
             <div className="flex items-center gap-3"><div className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.06] bg-white/[0.025] text-slate-400"><Activity className="h-4 w-4" /></div><div><p className="text-xs font-semibold text-slate-200">{pageTitle}</p><p className="mt-0.5 text-[10px] text-slate-600">Sua preparação para a Polícia Civil do Pará</p></div></div>
@@ -188,6 +212,7 @@ function App() {
                   {activeView === 'wrong' && <WrongAnswersNotebook userId={session?.user.id} onPractice={openPractice} />}
                   {activeView === 'tutor' && <TutorChat questionContext={questionContext} userId={session?.user.id} onClearContext={() => setQuestionContext(null)} />}
                   {activeView === 'stats' && <StatsView userId={session?.user.id} onNavigate={navigate} />}
+                  {activeView === 'admin' && isAdmin && <AdminAccessPanel />}
                 </Suspense>
                 <footer className="mt-9 flex items-center gap-1.5 border-t border-white/[0.05] pt-4 text-[9px] text-slate-600"><ShieldCheck className="h-3 w-3 shrink-0 text-mint/50" />Tutor PCPA · Material de apoio para estudos. Consulte o edital e as fontes oficiais.</footer>
               </>

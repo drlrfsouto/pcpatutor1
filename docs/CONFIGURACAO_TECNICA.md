@@ -65,15 +65,24 @@ WHERE lower(email) = lower('estudante@exemplo.com')
 RETURNING email, approved_at;
 ```
 
-Para retirar a aprovação, use `SET approved_at = NULL` com o mesmo filtro por e-mail. Contas que já existiam quando a migration for aplicada também entram como pendentes; aprove manualmente a conta administrativa e as contas conhecidas. A pessoa pode clicar em **Verificar aprovação** no app após você liberar o cadastro.
+Para retirar a aprovação, use `SET approved_at = NULL` com o mesmo filtro por e-mail. Contas que já existiam quando a migration for aplicada também entram como pendentes. A pessoa pode clicar em **Verificar aprovação** no app após você liberar o cadastro.
 
-Aplique a migration e publique as funções atualizadas no projeto correto:
+## Área administrativa de aprovações
+
+A área **Administração** aparece somente para usuários listados em `public.pcpa_admins`. A fila, a aprovação e a revogação são processadas pela Edge Function `pcpa-admin-access`, que valida a sessão e a permissão no servidor. A chave `SUPABASE_SERVICE_ROLE_KEY` nunca é enviada ao navegador.
+
+Para configurar o primeiro administrador, confirme que a conta já existe em **Authentication → Users**, aplique a migration e publique a função administrativa. Depois abra `supabase/admin/bootstrap_admin.sql`, substitua `ADMIN_EMAIL_AQUI` pelo e-mail exato do administrador e execute o script no **SQL Editor** do projeto, usando a fonte **Primary Database**. Esse passo único cadastra a função de administrador e aprova o próprio acesso para que essa conta possa abrir o app. Não é necessário repetir SQL para aprovar os demais usuários: use os botões **Aprovar conta** e **Revogar acesso** na área administrativa.
+
+A lista de administradores não pode ser alterada pelo frontend. Para adicionar outro administrador no futuro, o proprietário do projeto deve incluí-lo em `public.pcpa_admins` pelo painel do Supabase.
+
+Aplique as migrations e publique as funções no projeto correto:
 
 ```bash
 supabase link --project-ref <project-ref>
 supabase db push
 supabase functions deploy pcpa-tutor
 supabase functions deploy pcpa-gerar-questoes
+supabase functions deploy pcpa-admin-access
 ```
 
 ## Configuração do frontend e publicação

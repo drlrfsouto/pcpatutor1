@@ -8,13 +8,14 @@ import {
   Home,
   MessagesSquare,
   NotebookTabs,
+  ShieldCheck,
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type AppView = 'overview' | 'practice' | 'simulados' | 'flashcards' | 'wrong' | 'tutor' | 'stats';
+export type AppView = 'overview' | 'practice' | 'simulados' | 'flashcards' | 'wrong' | 'tutor' | 'stats' | 'admin';
 
-const NAV_ITEMS: { id: AppView; label: string; icon: typeof Home; badge?: string }[] = [
+const NAV_ITEMS: { id: AppView; label: string; icon: typeof Home; badge?: string; adminOnly?: boolean }[] = [
   { id: 'overview', label: 'Visão geral', icon: Home },
   { id: 'practice', label: 'Questões', icon: FileQuestion },
   { id: 'simulados', label: 'Simulados', icon: ClipboardList },
@@ -22,15 +23,19 @@ const NAV_ITEMS: { id: AppView; label: string; icon: typeof Home; badge?: string
   { id: 'wrong', label: 'Caderno de erros', icon: NotebookTabs },
   { id: 'tutor', label: 'Tutor IA', icon: MessagesSquare },
   { id: 'stats', label: 'Estatísticas', icon: BarChart3 },
+  { id: 'admin', label: 'Administração', icon: ShieldCheck, adminOnly: true },
 ];
 
 interface SidebarProps {
   active: AppView;
   onNavigate: (view: AppView) => void;
   streak?: number;
+  isAdmin?: boolean;
 }
 
-export function Sidebar({ active, onNavigate, streak = 0 }: SidebarProps) {
+export function Sidebar({ active, onNavigate, streak = 0, isAdmin = false }: SidebarProps) {
+  const visibleItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+
   return (
     <>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[254px] flex-col border-r border-white/[0.07] bg-[#081321]/90 px-4 py-5 backdrop-blur-xl md:flex">
@@ -47,7 +52,7 @@ export function Sidebar({ active, onNavigate, streak = 0 }: SidebarProps) {
 
         <div className="mt-9 px-3 text-[10px] font-bold uppercase tracking-[.2em] text-slate-600">Estudar</div>
         <nav aria-label="Navegação principal" className="mt-3 flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
             const selected = active === item.id;
             return (
@@ -80,7 +85,7 @@ export function Sidebar({ active, onNavigate, streak = 0 }: SidebarProps) {
           <div className="text-sm font-bold text-white">TUTOR <span className="text-mint">PCPA</span></div>
         </div>
         <nav aria-label="Navegação móvel" className="custom-scrollbar flex gap-1 overflow-x-auto pb-1">
-          {NAV_ITEMS.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
             const selected = active === item.id;
             return <button key={item.id} onClick={() => onNavigate(item.id)} className={cn('flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium', selected ? 'bg-mint/10 text-mint' : 'text-slate-400 hover:bg-white/5')} aria-current={selected ? 'page' : undefined}><Icon className="h-3.5 w-3.5" />{item.label}</button>;
