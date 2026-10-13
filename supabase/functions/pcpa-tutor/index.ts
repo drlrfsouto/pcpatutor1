@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { requireAuthenticatedUser } from "../_shared/auth.ts";
+import { requireApprovedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -87,8 +87,10 @@ serve(async (req) => {
   if (req.method !== "POST") return jsonResponse({ error: "Método não permitido." }, 405);
 
   try {
-    const user = await requireAuthenticatedUser(req);
-    if (!user) return jsonResponse({ error: "Entre na sua conta para usar o Tutor." }, 401);
+    const access = await requireApprovedUser(req);
+    if (access.status === "unauthenticated") return jsonResponse({ error: "Entre na sua conta para usar o Tutor." }, 401);
+    if (access.status === "pending") return jsonResponse({ error: "Seu cadastro está aguardando aprovação." }, 403);
+    if (access.status === "unavailable") return jsonResponse({ error: "Não foi possível confirmar a liberação da sua conta." }, 503);
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) return jsonResponse({ error: "As credenciais do Tutor não estão configuradas no servidor." }, 503);

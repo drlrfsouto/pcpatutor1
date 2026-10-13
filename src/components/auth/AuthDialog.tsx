@@ -95,7 +95,7 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
       });
       if (error) throw error;
 
-      toast.success('E-mail confirmado', { description: 'Sua sessão foi liberada. Bons estudos!' });
+      toast.success('E-mail confirmado', { description: 'Vamos verificar a liberação do seu acesso.' });
       onClose();
     } catch {
       toast.error('Não foi possível confirmar o código', {

@@ -37,7 +37,7 @@ A API do Google AI Studio oferece uma faixa gratuita com limites e cotas; ela n�
 
 ## Acesso com código de e-mail
 
-A tela de acesso envia um código de seis dígitos e valida o código no próprio app. Para que o e-mail contenha o código (em vez de um link), no painel do Supabase abra **Authentication → Email Templates → Magic Link** e use `{{ .Token }}` no corpo do e-mail. Exemplo:
+A tela de acesso envia um código de seis dígitos e valida o código no próprio app. Para que o e-mail contenha o código (em vez de um link), no painel do Supabase abra **Authentication → Email Templates** e use `{{ .Token }}` no corpo de **Magic link or OTP** e também de **Confirm sign up**. O primeiro cobre acessos de quem já tem conta; o segundo cobre o primeiro cadastro. Exemplo:
 
 ```html
 <h2>Seu código de acesso ao Tutor PCPA</h2>
@@ -46,11 +46,35 @@ A tela de acesso envia um código de seis dígitos e valida o código no própri
 <p>Se você não solicitou este código, ignore esta mensagem.</p>
 ```
 
-O código chama `signInWithOtp` para enviá-lo e `verifyOtp` para validá-lo. Se o template continuar usando `{{ .ConfirmationURL }}`, o Supabase enviará um link e a caixa de seis dígitos do app não poderá validá-lo. Para permitir que novos estudantes criem uma conta ao informar o e-mail, mantenha habilitado o cadastro de novos usuários no provedor de e-mail.
+O código chama `signInWithOtp` para enviá-lo e `verifyOtp` para validá-lo. Remova `{{ .ConfirmationURL }}` dos dois modelos; se ele continuar presente, o Supabase enviará um link. Para permitir solicitações de novos estudantes, mantenha habilitado o cadastro de novos usuários no provedor de e-mail. A confirmação do código cria uma sessão, mas o cadastro fica pendente até aprovação manual.
 
 O provedor de e-mail padrão do Supabase é restrito a testes: sem SMTP próprio, ele só entrega mensagens a endereços autorizados da equipe do projeto e tem limite baixo de envio. Para disponibilizar o acesso aos estudantes, configure um SMTP transacional em **Authentication → SMTP Settings**. Consulte os [limites e requisitos atuais de envio](https://supabase.com/docs/guides/auth/auth-smtp).
 
-As ferramentas de estudo continuam acessíveis no modo demonstração sem entrar. Confirmar o e-mail cria a sessão para sincronização do progresso e para recursos que exigem autenticação.
+As ferramentas de estudo continuam acessíveis no modo demonstração sem entrar. Uma conta autenticada só sincroniza progresso e usa recursos protegidos depois da aprovação.
+
+## Aprovação manual de novos cadastros
+
+A confirmação do código valida que a pessoa controla o e-mail, mas não aprova o acesso completo. Com a migration `20261013000000_manual_access_approval.sql`, cada cadastro entra como **aguardando aprovação**. A interface mostra essa situação; dados pessoais, Tutor e geração de questões também são protegidos por RLS e pelas Edge Functions. As ferramentas públicas de demonstração continuam disponíveis após sair da conta.
+
+Depois de aplicar a migration, a equipe administra a fila na tabela `public.pcpa_access_requests`. Para aprovar uma pessoa, abra o **SQL Editor** do projeto Supabase e execute, substituindo o e-mail:
+
+```sql
+UPDATE public.pcpa_access_requests
+SET approved_at = NOW()
+WHERE lower(email) = lower('estudante@exemplo.com')
+RETURNING email, approved_at;
+```
+
+Para retirar a aprovação, use `SET approved_at = NULL` com o mesmo filtro por e-mail. Contas que já existiam quando a migration for aplicada também entram como pendentes; aprove manualmente a conta administrativa e as contas conhecidas. A pessoa pode clicar em **Verificar aprovação** no app após você liberar o cadastro.
+
+Aplique a migration e publique as funções atualizadas no projeto correto:
+
+```bash
+supabase link --project-ref <project-ref>
+supabase db push
+supabase functions deploy pcpa-tutor
+supabase functions deploy pcpa-gerar-questoes
+```
 
 ## Configuração do frontend e publicação
 

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { requireAuthenticatedUser } from "../_shared/auth.ts";
+import { requireApprovedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -441,8 +441,10 @@ serve(async (req) => {
   if (req.method !== "POST") return responseJson({ success: false, error: "Método não permitido." }, 405);
 
   try {
-    const user = await requireAuthenticatedUser(req);
-    if (!user) return responseJson({ success: false, error: "Entre na sua conta para pesquisar e salvar questões." }, 401);
+    const access = await requireApprovedUser(req);
+    if (access.status === "unauthenticated") return responseJson({ success: false, error: "Entre na sua conta para pesquisar e salvar questões." }, 401);
+    if (access.status === "pending") return responseJson({ success: false, error: "Seu cadastro está aguardando aprovação." }, 403);
+    if (access.status === "unavailable") return responseJson({ success: false, error: "Não foi possível confirmar a liberação da sua conta." }, 503);
 
     const body = await req.json();
     const subject = cleanText(body?.subject, 180);
