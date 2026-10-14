@@ -17,13 +17,13 @@ export function QuestionSourceBadge({ source, metadata, className }: QuestionSou
       icon: FileCheck2,
       label: 'Questão real',
       className: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15',
-      description: data?.concurso ? `${data.concurso}${data.banca ? ` · ${data.banca}` : ''}${data.data_aplicacao ? ` · prova em ${data.data_aplicacao}` : data.ano ? ` · ${data.ano}` : ''}` : 'Questão identificada em fonte oficial e validada com gabarito.',
+      description: data?.concurso ? `${data.concurso}${data.banca ? ` · ${data.banca}` : ''}${data.data_aplicacao ? ` · prova em ${data.data_aplicacao}` : data.ano ? ` · ${data.ano}` : ''}` : 'Questão de fonte oficial com permissão expressa de reprodução e gabarito validado.',
     },
     ai_generated: {
       icon: Sparkles,
-      label: 'Gerada por IA',
-      className: 'border-sky-400/30 bg-sky-400/10 text-sky-300 hover:bg-sky-400/15',
-      description: 'Questão criada com apoio de IA; não é reprodução de prova oficial.',
+      label: 'IA · não é real',
+      className: 'border-violet-400/30 bg-violet-400/10 text-violet-200 hover:bg-violet-400/15',
+      description: 'Item autoral solicitado à IA sobre um tópico geral; não é questão real de concurso. O modelo é instruído a não copiar nem adaptar questões específicas.',
     },
     manual: {
       icon: PencilLine,

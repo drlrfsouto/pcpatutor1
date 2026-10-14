@@ -23,7 +23,7 @@ import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
 import { filterVerifiedRealQuestions } from '@/lib/question-provenance';
 import { getFlashcardProgress, saveFlashcardProgress, type FlashcardProgress } from '@/lib/local-storage';
-import { answerLetter } from '@/lib/utils';
+import { answerLetter, questionAnswerDisplay, questionExplanationLabel, questionOptionDetails } from '@/lib/utils';
 
 interface FlashcardSessionProps { userId?: string }
 type Grade = 'again' | 'hard' | 'good' | 'easy';
@@ -78,7 +78,7 @@ export function FlashcardSession({ userId }: FlashcardSessionProps) {
   }, [candidateQuestions, canInitializeDeck, sessionDeck.length]);
   const dueQuestions = sessionDeck.length ? sessionDeck : candidateQuestions;
   const card = dueQuestions[index];
-  const answerOption = card?.options.find((option, optionIndex) => (option.match(/^\s*([A-E])/i)?.[1]?.toUpperCase() ?? String.fromCharCode(65 + optionIndex)) === answerLetter(card.answer));
+  const answerOption = card ? card.options.map((option, optionIndex) => questionOptionDetails(card.type, option, optionIndex)).find((option) => option.value === answerLetter(card.answer))?.text : undefined;
 
   async function rateCard(quality: number) {
     if (!card) return;
@@ -143,7 +143,7 @@ export function FlashcardSession({ userId }: FlashcardSessionProps) {
         <QuestionProvenance question={card} showOfficialAnswer={flipped} className="mx-4 mt-4 md:mx-6" />
         <button onClick={() => setFlipped((value) => !value)} className="group flex min-h-[350px] w-full flex-col items-center justify-center px-6 py-10 text-center transition-colors hover:bg-white/[0.012] md:min-h-[390px] md:px-12">
           <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/[0.07] px-3 py-1 text-[10px] font-semibold uppercase tracking-[.16em] text-slate-500">{flipped ? <><Sparkles className="h-3 w-3 text-mint" /> Resposta</> : <><CircleHelp className="h-3 w-3 text-violet-300" /> Lembre antes de virar</>}</span>
-          {!flipped ? <><h2 className="max-w-2xl text-xl font-medium leading-8 text-white md:text-2xl">{card.flashcard_summary || card.prompt}</h2><p className="mt-5 text-xs text-slate-500">Clique para revelar a resposta</p></> : <div className="max-w-2xl animate-float-in"><p className="text-lg font-semibold text-mint">{answerOption?.replace(/^\s*[A-E]\s*[).:-]?\s*/i, '') || `Alternativa ${answerLetter(card.answer)}`}</p><p className="mt-4 text-[10px] font-semibold uppercase tracking-[.12em] text-slate-500">Comentário didático assistido por IA</p><p className="mt-1 text-sm leading-7 text-slate-300">{card.gabarito_comentado}</p>{card.needs_verification && <p className="mt-4 text-xs text-amber-200">⚠️ Verificar Lei Seca em fonte oficial atualizada.</p>}</div>}
+          {!flipped ? <><h2 className="max-w-2xl text-xl font-medium leading-8 text-white md:text-2xl">{card.flashcard_summary || card.prompt}</h2><p className="mt-5 text-xs text-slate-500">Clique para revelar a resposta</p></> : <div className="max-w-2xl animate-float-in"><p className="text-lg font-semibold text-mint">{answerOption || questionAnswerDisplay(card.type, card.answer)}</p><p className="mt-4 text-[10px] font-semibold uppercase tracking-[.12em] text-slate-500">{questionExplanationLabel(card.metadata)}</p><p className="mt-1 text-sm leading-7 text-slate-300">{card.gabarito_comentado}</p>{card.needs_verification && <p className="mt-4 text-xs text-amber-200">⚠️ Verificar Lei Seca em fonte oficial atualizada.</p>}</div>}
           <span className="mt-8 inline-flex items-center gap-1.5 text-xs text-violet-200/70 group-hover:text-violet-100">{flipped ? 'Voltar ao enunciado' : 'Ver resposta'} <ArrowRight className="h-3.5 w-3.5" /></span>
         </button>
         <div className="border-t border-white/[0.055] p-4 md:px-6">{!flipped ? <Button variant="secondary" className="w-full" onClick={() => setFlipped(true)}><RotateCcw className="h-4 w-4" />Revelar resposta</Button> : <div><p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-[.14em] text-slate-500">Como foi a lembrança?</p><div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{GRADE_CONFIG.map((item) => <button key={item.grade} onClick={() => void rateCard(item.quality)} className={`rounded-xl border px-3 py-3 text-left transition ${item.className}`}><span className="block text-xs font-semibold">{item.label}</span><span className="mt-1 block text-[9px] opacity-65">{item.hint}</span></button>)}</div></div>}</div>

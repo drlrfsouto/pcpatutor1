@@ -1,6 +1,7 @@
 import { Building2, CalendarDays, ExternalLink, FileQuestion, ShieldCheck } from 'lucide-react';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
 import { isVerifiedRealQuestion } from '@/lib/question-provenance';
+import { answerLetter } from '@/lib/utils';
 
 interface QuestionProvenanceProps {
   question: PcpaQuestion;
@@ -21,6 +22,10 @@ export function QuestionProvenance({ question, showOfficialAnswer = false, class
   const sourceUrl = metadata.url_fonte!;
   const answerSourceUrl = metadata.url_gabarito || sourceUrl;
   const hasSeparateAnswerSource = answerSourceUrl !== sourceUrl;
+  const officialAnswerLetter = answerLetter(metadata.gabarito_oficial);
+  const officialAnswerLabel = question.type === 'certo_errado'
+    ? `${officialAnswerLetter === 'C' ? 'Certo' : 'Errado'} (${officialAnswerLetter})`
+    : metadata.gabarito_oficial;
   const items = [
     { label: 'Concurso', value: metadata.concurso },
     { label: 'Banca organizadora', value: metadata.banca },
@@ -46,9 +51,14 @@ export function QuestionProvenance({ question, showOfficialAnswer = false, class
       {showOfficialAnswer && metadata.gabarito_oficial && (
         <p className="mt-3 flex items-center gap-2 border-t border-white/[0.06] pt-3 text-xs text-emerald-100">
           <FileQuestion aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
-          Gabarito oficial identificado: <strong>{metadata.gabarito_oficial}</strong>
+          Gabarito oficial identificado: <strong>{officialAnswerLabel}</strong>
         </p>
       )}
+      <div className="mt-3 rounded-xl border border-emerald-400/10 bg-emerald-400/[0.025] p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[.1em] text-emerald-100">Permissão expressa de reprodução</p>
+        <p className="mt-1 text-xs leading-5 text-slate-300">{metadata.license_terms}</p>
+        {metadata.license_evidence_url && <a href={metadata.license_evidence_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-[10px] font-medium text-cyan-300 hover:underline">Conferir documento da permissão <ExternalLink aria-hidden="true" className="h-3 w-3" /></a>}
+      </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3">
         <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500">
           <Building2 aria-hidden="true" className="h-3 w-3" />
@@ -69,9 +79,14 @@ export function QuestionProvenance({ question, showOfficialAnswer = false, class
           </a>
         </div>
       )}
+      {metadata.data_aplicacao && metadata.application_date_evidence_url && (
+        <div className="mt-2 flex justify-end border-t border-white/[0.06] pt-2">
+          <a href={metadata.application_date_evidence_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] text-cyan-300 hover:underline">Conferir evidência da data de aplicação <ExternalLink aria-hidden="true" className="h-3 w-3" /></a>
+        </div>
+      )}
       <p className="mt-2 flex items-center gap-1.5 text-[9px] leading-4 text-slate-500">
         <CalendarDays aria-hidden="true" className="h-3 w-3 shrink-0" />
-        A prova e o gabarito são vinculados a documento(s) oficial(is). O comentário explicativo pode usar IA; confira as fontes originais.
+        A prova, o gabarito e a permissão são vinculados a documentos oficiais. A justificativa está identificada como oficial ou didática assistida por IA; confira as fontes originais.
       </p>
     </section>
   );

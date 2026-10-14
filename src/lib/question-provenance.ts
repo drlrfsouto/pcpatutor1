@@ -36,6 +36,7 @@ export function isVerifiedRealQuestion(question: PcpaQuestion | null | undefined
   const requiredMetadata = [metadata.concurso, metadata.banca, metadata.cargo, metadata.numero_questao];
   if (requiredMetadata.some((value) => !value?.trim()) || !Number.isInteger(year) || year < 2000 || year > new Date().getFullYear()) return false;
   if (answerLetter(metadata.gabarito_oficial) !== answerLetter(question.answer)) return false;
+  if (metadata.reproduction_permission !== 'explicit' || !metadata.license_terms?.trim()) return false;
   const isOfficialUrl = (value?: string) => {
     if (!value?.trim()) return false;
     try {
@@ -46,8 +47,16 @@ export function isVerifiedRealQuestion(question: PcpaQuestion | null | undefined
     }
   };
 
-  if (!isOfficialUrl(metadata.url_fonte)) return false;
-  if (metadata.url_gabarito && !isOfficialUrl(metadata.url_gabarito)) return false;
+  if (!isOfficialUrl(metadata.url_fonte) || !isOfficialUrl(metadata.url_gabarito)) return false;
+  if (!isOfficialUrl(metadata.license_evidence_url)) return false;
+  if (metadata.data_aplicacao && !isOfficialUrl(metadata.application_date_evidence_url)) return false;
+  if (question.type === 'certo_errado') {
+    if (question.options.length !== 2 || question.options[0].trim().toLowerCase() !== 'certo' || question.options[1].trim().toLowerCase() !== 'errado') return false;
+  } else if (question.type === 'multipla_escolha') {
+    if (question.options.length !== 5) return false;
+  } else {
+    return false;
+  }
   return true;
 }
 

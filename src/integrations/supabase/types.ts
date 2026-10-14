@@ -13,9 +13,18 @@ export interface QuestionMetadata {
   url_gabarito?: string;
   nome_fonte_gabarito?: string;
   data_aplicacao?: string;
+  application_date_evidence_url?: string;
   gabarito_oficial?: string;
   numero_questao?: string;
   caderno?: string;
+  source_id?: string;
+  gabarito_source_id?: string;
+  reproduction_permission?: 'explicit' | 'not_verified';
+  license_terms?: string;
+  license_evidence_url?: string;
+  question_bank_local_id?: string;
+  question_bank_version?: string;
+  explanation_type?: 'official' | 'ai_assisted';
 }
 
 export interface PcpaQuestion {
@@ -34,6 +43,7 @@ export interface PcpaQuestion {
   metadata: QuestionMetadata | Record<string, never> | null;
   needs_verification: boolean;
   created_at: string;
+  question_fingerprint?: string | null;
   times_answered?: number;
   times_correct?: number;
   difficulty_rating?: number | null;

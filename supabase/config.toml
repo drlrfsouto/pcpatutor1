@@ -6,5 +6,8 @@ verify_jwt = true
 [functions.pcpa-gerar-questoes]
 verify_jwt = true
 
+[functions.pcpa-gerar-questoes-autorais]
+verify_jwt = true
+
 [functions.pcpa-admin-access]
 verify_jwt = true

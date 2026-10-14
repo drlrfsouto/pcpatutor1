@@ -8,15 +8,15 @@ No painel do projeto Supabase, abra **Edge Functions → Secrets** e cadastre:
 
 | Nome da secret | Valor |
 |---|---|
-| `GEMINI_API_KEY` | Chave principal criada no Google AI Studio; usada pelo Tutor e para comentários explicativos, não para criar enunciados de questões |
+| `GEMINI_API_KEY` | Chave principal criada no Google AI Studio; usada pelo Tutor, comentários explicativos e pelo modo separado de geração autoral por IA. Nunca é usada para criar ou completar questões reais |
 | `GEMINI_API_KEY_2` | Opcional; chave de contingência, de preferência associada a outro projeto Google Cloud/AI Studio |
-| `TAVILY_API_KEY` | Chave da conta Tavily; necessária para localizar fontes oficiais de provas |
+| `TAVILY_API_KEY` | Secret da conta Tavily; usada somente para buscar novas fontes quando o acervo local não cobrir a solicitação |
 | `GEMINI_MODEL` | Opcional; padrão atual: `gemini-3.8-flash` |
 | `GEMINI_FALLBACK_MODEL` | Opcional; padrão atual: `gemini-3.5-flash-lite` |
 
-`GEMINI_API_KEY` é a chave principal. Se ela falhar ao iniciar uma chamada, o Tutor e a busca de questões tentam `GEMINI_API_KEY_2` e, em seguida, o modelo alternativo configurado. Cadastre `GEMINI_API_KEY_2` somente em **Edge Functions → Secrets** do Supabase; não a envie por mensagem nem a inclua em variável `VITE_*`. A chave reserva funciona melhor quando pertence a outro projeto Google Cloud/AI Studio: os limites do Gemini são por projeto, não por chave, então duas chaves do mesmo projeto compartilham a mesma cota. A contingência não aumenta nem garante limites; apenas tenta o outro projeto se a chamada falhar.
+`GEMINI_API_KEY` é a chave principal. Se ela falhar ao iniciar uma chamada, o Tutor e as funções de questões tentam `GEMINI_API_KEY_2` e, em seguida, o modelo alternativo configurado. Cadastre `GEMINI_API_KEY_2` somente em **Edge Functions → Secrets** do Supabase; não a envie por mensagem nem a inclua em variável `VITE_*`. A chave reserva funciona melhor quando pertence a outro projeto Google Cloud/AI Studio: os limites do Gemini são por projeto, não por chave, então duas chaves do mesmo projeto compartilham a mesma cota. A contingência não aumenta nem garante limites; apenas tenta o outro projeto se a chamada falhar.
 
-`TAVILY_API_KEY` é necessária para pesquisar provas e gabaritos em fontes primárias oficiais. Se a busca não estiver configurada ou não encontrar evidência suficiente, o sistema não cria nem insere questões como substitutas. Os nomes dos modelos são opcionais porque o código já tem padrões. As Edge Functions leem as chaves com segurança no Supabase; o frontend nunca as recebe.
+`TAVILY_API_KEY` é necessária somente quando o acervo local versionado e as questões licenciadas já persistidas não forem suficientes e a função precisar pesquisar itens novos. A Edge Function consulta primeiro `supabase/data/pc-question-bank.v1.json`, depois reaproveita registros elegíveis do banco e só então chama a web para preencher lacunas. Se a busca não estiver configurada ou não encontrar evidência suficiente, a função preserva o que já encontrou e não cria questões substitutas. Os nomes dos modelos são opcionais porque o código já tem padrões. As Edge Functions leem as secrets no Supabase; o frontend nunca as recebe.
 
 Também é possível cadastrá-las pela CLI, substituindo os valores entre aspas pelas suas próprias chaves:
 
@@ -39,13 +39,21 @@ supabase secrets set GEMINI_API_KEY_2="SUA_CHAVE_DE_CONTINGENCIA"
 ## Qual serviço faz o quê
 
 - **Tavily:** pesquisa páginas na web para localizar provas e gabaritos. Os resultados precisam vir de um domínio de banca organizadora ou órgão público aceito pela lista de fontes primárias da Edge Function.
-- **Google AI Studio:** auxilia o Tutor e estrutura o comentário explicativo a partir das fontes encontradas. Não cria nem completa enunciados ou alternativas. Uma questão só é salva quando um documento oficial comprova literalmente o enunciado e as cinco alternativas e um documento oficial comprova o gabarito para a mesma questão. Os documentos podem ser o mesmo ou separados; quando separados, ambos precisam comprovar o mesmo concurso, banca, cargo, ano e número da questão. Os links da prova e do gabarito ficam registrados separadamente. A data da prova só é guardada quando aparece explicitamente no documento da prova. Se a verificação falhar, a questão é descartada — não há preenchimento por IA.
-- **Interface de estudo:** prática, simulados, flashcards e caderno de erros filtram itens cuja origem e gabarito oficial não passam pela validação de procedência. O comentário de resolução pode usar IA e deve ser conferido no documento original.
+- **Google AI Studio:** auxilia o Tutor e estrutura comentários didáticos. O endpoint `pcpa-gerar-questoes-autorais` oferece um modo separado: recebe somente matéria e tópico geral, sem texto de provas ou questões específicas, e instrui o modelo a criar itens autorais sem copiar ou adaptar perto itens existentes. Não atribui metadados de concurso nem grava itens no banco oficial; a interface os marca como “IA · não é real”. A IA nunca cria, completa ou substitui enunciados, alternativas, gabaritos ou metadados de questões reais. A extração integral de questão real só é aceita quando a prova oficial traz permissão explícita de reprodução didática ou licença equivalente identificada. Questões de múltipla escolha precisam ter o enunciado e as cinco alternativas literais; itens de julgamento aceitam o formato C/E com as opções padronizadas `Certo` e `Errado`. Um documento oficial deve comprovar o gabarito para o mesmo número, concurso, banca, cargo e ano; caderno identificado precisa corresponder nos documentos envolvidos. Os links da prova e do gabarito são armazenados separadamente. Metadados incompletos ou sem permissão não são preenchidos por IA.
+- **Interface de estudo:** o Banco, os simulados, flashcards e caderno de erros usam questões licenciadas com procedência validada, incluindo Certo/Errado. O modo autoral por IA é uma prática separada, não salva tentativas como desempenho de questão real e nunca alimenta o Banco oficial. A procedência de itens reais apresenta links da prova, do gabarito e da evidência da permissão; o comentário é identificado como oficial ou didático assistido por IA.
 - **Recursos de estudo:** simulados, correção, repetição espaçada dos flashcards, estatísticas e gamificação são recursos da própria aplicação e não precisam de uma chamada de IA para funcionar.
 
-As migrations `20261014130000_pcpa_official_questions_only.sql` e `20261014150000_pcpa_verified_answer_source.sql` restringem também o acesso pelo PostgREST: registros antigos de IA, manuais ou sem procedência completa não são apagados, mas deixam de ser legíveis por contas anônimas e autenticadas. Quando houver um `url_gabarito` separado, ele também precisa apontar para um domínio oficial aprovado. A Edge Function com `service_role` continua podendo inserir itens verificados. Para publicar essas mudanças, execute `supabase db push` no projeto correto.
+As migrations `20261014130000_pcpa_official_questions_only.sql`, `20261014150000_pcpa_verified_answer_source.sql` e `20261014160000_pcpa_question_bank_dedup_and_reproduction_rights.sql` restringem o PostgREST a questões reais com procedência oficial e permissão expressa de reprodução. Registros antigos de IA, manuais ou sem permissão/metadados completos não são apagados, mas deixam de ser legíveis por contas anônimas e autenticadas. Prova, gabarito e evidência de licença precisam apontar para domínios oficiais aprovados. A última migration também cria um fingerprint único, usado para impedir duplicatas nas importações locais e na pesquisa web. A Edge Function com `service_role` consulta, persiste e reutiliza itens elegíveis. Para publicar as mudanças, execute `supabase db push` no projeto correto.
 
 Antes de disponibilizar questões na aplicação, confirme que os termos da banca ou do órgão permitem a reprodução e redistribuição do texto da prova. O fato de a prova estar em um site oficial não significa, por si só, que o conteúdo esteja livre de direitos autorais; quando necessário, prefira exibir a referência e o link para a fonte.
+
+### Acervo de questões versionado
+
+O arquivo canônico do catálogo está em `supabase/data/pc-question-bank.v1.json`. Antes de publicar a Edge Function, execute `npm run sync:question-bank`: o comando copia esse arquivo para `supabase/functions/_shared/pc-question-bank.v1.json`, caminho empacotado com a função. `exam_sources` guarda referências de concursos de Polícias Civis; `questions` contém transcrição integral apenas quando a permissão foi verificada. As nove referências da versão atual incluem onze itens licenciados do PCDF Escrivão 2021; os demais concursos permanecem como metadados e links oficiais. Questões anuladas não são importadas.
+
+Ao atualizar o arquivo, preserve os IDs estáveis e só acrescente texto quando houver evidência explícita da licença/permissão no documento oficial. Registre URLs distintas para prova e gabarito quando forem documentos separados; não associe cadernos diferentes. Preencha datas e cargos apenas quando comprovados e mantenha `subject`, `topic` e `difficulty` identificados como classificações editoriais. O tipo `certo_errado` usa duas opções (`Certo`, `Errado`) e `official_answer_letter` deve corresponder ao gabarito oficial. Não crie enunciados, gabaritos, justificativas ou metadados por inferência.
+
+A cada solicitação, a função verifica o arquivo versionado, reaproveita questões licenciadas já no banco e só pesquisa a web se ainda faltar a quantidade solicitada. A interface mostra uma mensagem animada desse progresso e expõe as referências catalogadas com indicação explícita quando não há permissão para copiar o texto.
 
 A API do Google AI Studio oferece uma faixa gratuita com limites e cotas; ela não é ilimitada. Consulte as condições atuais da sua conta e região antes de publicar para muitos usuários. Consulte também os limites vigentes da Tavily.
 
@@ -94,8 +102,10 @@ Aplique as migrations e publique as funções no projeto correto:
 ```bash
 supabase link --project-ref <project-ref>
 supabase db push
+npm run sync:question-bank
 supabase functions deploy pcpa-tutor
 supabase functions deploy pcpa-gerar-questoes
+supabase functions deploy pcpa-gerar-questoes-autorais
 supabase functions deploy pcpa-admin-access
 ```
 
