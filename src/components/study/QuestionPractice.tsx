@@ -144,15 +144,28 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
       if (error) throw error;
       const result = data as { success?: boolean; error?: string; questions?: PcpaQuestion[]; search_summary?: typeof searchSummary; message?: string };
       if (!result?.success) throw new Error(result?.error || 'A busca não encontrou questões oficiais verificáveis.');
-      setSearchSummary(result.search_summary ?? null);
+
+      // Never trust a server-provided count/message to classify items as real:
+      // an older deployed Edge Function may still report AI-generated fallback items.
+      const verifiedQuestions = filterVerifiedRealQuestions(Array.isArray(result.questions) ? result.questions : []);
+      const searchAvailable = typeof result.search_summary?.search_available === 'boolean'
+        ? result.search_summary.search_available
+        : verifiedQuestions.length > 0;
+      setSearchSummary({
+        ...result.search_summary,
+        real_questions: verifiedQuestions.length,
+        search_available: searchAvailable,
+      });
       await queryClient.invalidateQueries({ queryKey: ['questions'] });
       setQuestionIndex(0);
       setHasAnswered(false);
       setSelectedAnswer('');
-      if ((result.search_summary?.real_questions ?? result.questions?.length ?? 0) > 0) {
-        toast.success(result.message || `${result.search_summary?.real_questions ?? result.questions?.length} questões reais verificadas.`);
+      if (verifiedQuestions.length > 0) {
+        toast.success(`${verifiedQuestions.length} questão(ões) real(is) com procedência oficial verificadas.`);
+      } else if (searchAvailable) {
+        toast.info('As fontes consultadas não permitiram confirmar enunciado, alternativas e gabarito oficial. Nenhuma questão artificial foi incluída.');
       } else {
-        toast.info(result.message || 'Nenhuma questão real com fonte e gabarito confirmados foi localizada. Não incluímos questões artificiais.');
+        toast.info('A busca em fontes oficiais está indisponível ou sem configuração. Nenhuma questão artificial foi incluída.');
       }
     } catch {
       toast.error('A busca não pôde ser concluída', { description: 'Tente novamente em instantes. Nenhuma questão criada por IA será usada como substituta.' });

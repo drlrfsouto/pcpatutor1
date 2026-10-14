@@ -27,7 +27,7 @@ Um espaço de estudo para quem está se preparando para o concurso da Polícia C
 
 ## Como usar as questões
 
-O banco de prática, os simulados, os flashcards e o caderno de erros exibem apenas questões cuja origem oficial e cujo gabarito tenham sido verificados. Cada item mostra concurso, banca, cargo, ano, número da questão, data da prova quando a fonte a informa e um link para o documento original. Questões que não possam ser confirmadas não são incluídas nem substituídas por questões inventadas por IA.
+O banco de prática, os simulados, os flashcards e o caderno de erros exibem apenas questões cuja origem oficial e cujo gabarito tenham sido verificados. Cada item mostra concurso, banca, cargo, ano, número da questão e, quando comprovada, data da prova. O enunciado é vinculado ao caderno oficial e o gabarito a documento(s) oficial(is), com links separados quando necessário. Questões que não possam ser confirmadas não são incluídas nem substituídas por questões inventadas por IA.
 
 A IA pode ajudar a produzir o comentário didático da resolução; esse comentário não é o gabarito oficial. Confira a fonte original, o edital e a legislação vigente. Quando aparecer **“⚠️ Verificar Lei Seca”**, confirme o dispositivo antes de memorizar.
 

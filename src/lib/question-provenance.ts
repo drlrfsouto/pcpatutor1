@@ -36,14 +36,19 @@ export function isVerifiedRealQuestion(question: PcpaQuestion | null | undefined
   const requiredMetadata = [metadata.concurso, metadata.banca, metadata.cargo, metadata.numero_questao];
   if (requiredMetadata.some((value) => !value?.trim()) || !Number.isInteger(year) || year < 2000 || year > new Date().getFullYear()) return false;
   if (answerLetter(metadata.gabarito_oficial) !== answerLetter(question.answer)) return false;
-  if (!metadata.url_fonte) return false;
+  const isOfficialUrl = (value?: string) => {
+    if (!value?.trim()) return false;
+    try {
+      const url = new URL(value);
+      return /^https?:$/.test(url.protocol) && isOfficialQuestionHost(url.hostname);
+    } catch {
+      return false;
+    }
+  };
 
-  try {
-    const url = new URL(metadata.url_fonte);
-    return /^https?:$/.test(url.protocol) && isOfficialQuestionHost(url.hostname);
-  } catch {
-    return false;
-  }
+  if (!isOfficialUrl(metadata.url_fonte)) return false;
+  if (metadata.url_gabarito && !isOfficialUrl(metadata.url_gabarito)) return false;
+  return true;
 }
 
 export function filterVerifiedRealQuestions(questions: PcpaQuestion[]) {

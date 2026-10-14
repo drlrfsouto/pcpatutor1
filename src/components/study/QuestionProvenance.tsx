@@ -19,6 +19,8 @@ export function QuestionProvenance({ question, showOfficialAnswer = false, class
 
   const metadata = question.metadata!;
   const sourceUrl = metadata.url_fonte!;
+  const answerSourceUrl = metadata.url_gabarito || sourceUrl;
+  const hasSeparateAnswerSource = answerSourceUrl !== sourceUrl;
   const items = [
     { label: 'Concurso', value: metadata.concurso },
     { label: 'Banca organizadora', value: metadata.banca },
@@ -50,15 +52,26 @@ export function QuestionProvenance({ question, showOfficialAnswer = false, class
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3">
         <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500">
           <Building2 aria-hidden="true" className="h-3 w-3" />
-          {metadata.nome_fonte || 'Documento oficial da prova ou do gabarito'}
+          {metadata.nome_fonte || 'Documento oficial da prova'}
         </span>
         <a href={sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-cyan-300 hover:text-cyan-200 hover:underline">
-          Abrir fonte original <ExternalLink aria-hidden="true" className="h-3 w-3" />
+          Abrir prova/caderno <ExternalLink aria-hidden="true" className="h-3 w-3" />
         </a>
       </div>
+      {showOfficialAnswer && hasSeparateAnswerSource && (
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3">
+          <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500">
+            <Building2 aria-hidden="true" className="h-3 w-3" />
+            {metadata.nome_fonte_gabarito || 'Documento oficial do gabarito'}
+          </span>
+          <a href={answerSourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-cyan-300 hover:text-cyan-200 hover:underline">
+            Abrir gabarito oficial <ExternalLink aria-hidden="true" className="h-3 w-3" />
+          </a>
+        </div>
+      )}
       <p className="mt-2 flex items-center gap-1.5 text-[9px] leading-4 text-slate-500">
         <CalendarDays aria-hidden="true" className="h-3 w-3 shrink-0" />
-        O enunciado e o gabarito são vinculados à fonte. O comentário explicativo pode usar IA; confira o documento original.
+        A prova e o gabarito são vinculados a documento(s) oficial(is). O comentário explicativo pode usar IA; confira as fontes originais.
       </p>
     </section>
   );

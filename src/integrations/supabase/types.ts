@@ -10,6 +10,8 @@ export interface QuestionMetadata {
   cargo?: string;
   url_fonte?: string;
   nome_fonte?: string;
+  url_gabarito?: string;
+  nome_fonte_gabarito?: string;
   data_aplicacao?: string;
   gabarito_oficial?: string;
   numero_questao?: string;
