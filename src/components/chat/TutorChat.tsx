@@ -24,9 +24,11 @@ import { SubjectBadge } from '@/components/ui/SubjectBadge';
 import { isSupabaseConfigured } from '@/integrations/supabase/client';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
 import { streamTutorReply, type TutorMessage } from '@/lib/tutor-stream';
+import { getStudyRole, type StudyRoleId } from '@/lib/constants/subjects';
 import { toast } from 'sonner';
 
 interface TutorChatProps {
+  studyRoleId: StudyRoleId;
   questionContext: PcpaQuestion | null;
   userId?: string;
   onClearContext: () => void;
@@ -38,7 +40,8 @@ const SUGGESTIONS = [
   'Quais são as pegadinhas mais comuns em interpretação de texto?',
 ];
 
-export function TutorChat({ questionContext, userId, onClearContext }: TutorChatProps) {
+export function TutorChat({ studyRoleId, questionContext, userId, onClearContext }: TutorChatProps) {
+  const studyRole = getStudyRole(studyRoleId);
   const [messages, setMessages] = useState<TutorMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -75,7 +78,7 @@ export function TutorChat({ questionContext, userId, onClearContext }: TutorChat
     const controller = new AbortController();
     controllerRef.current = controller;
     try {
-      await streamTutorReply([...messages, userMessage], questionContext, (chunk) => {
+      await streamTutorReply([...messages, userMessage], questionContext, studyRoleId, (chunk) => {
         setMessages((current) => current.map((message, index) => index === assistantIndex ? { ...message, content: message.content + chunk } : message));
       }, controller.signal);
     } catch {
@@ -101,7 +104,7 @@ export function TutorChat({ questionContext, userId, onClearContext }: TutorChat
   return (
     <div className="animate-float-in mx-auto flex min-h-[calc(100svh-190px)] max-w-6xl flex-col md:min-h-[calc(100vh-170px)]">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-violet-300"><Sparkles className="h-3.5 w-3.5" /> Tutor de estudos</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Tutor IA PCPA</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Tire dúvidas, destrave conceitos e receba explicações didáticas, com cautela reforçada em legislação.</p></div>
+        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-violet-300"><Sparkles className="h-3.5 w-3.5" /> Tutor de estudos</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Tutor IA PCPA</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Tire dúvidas dentro da trilha {studyRole?.label} · {studyRole?.notice}. O Tutor recebe o cargo ativo e o escopo do edital; em legislação, confira a redação em fonte oficial.</p></div>
         <Button variant="secondary" size="sm" onClick={startNewChat}><Plus className="h-3.5 w-3.5" />Nova conversa</Button>
       </div>
 

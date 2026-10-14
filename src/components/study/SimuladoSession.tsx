@@ -26,19 +26,22 @@ import { QuestionSourceBadge } from '@/components/study/QuestionSourceBadge';
 import { SubjectBadge } from '@/components/ui/SubjectBadge';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
-import { PCPA_SUBJECTS } from '@/lib/constants/subjects';
+import { getPriorityLabel, getRoleSubject, getStudyRole, getSubjectsForRole, isSubjectInRole, type StudyRoleId } from '@/lib/constants/subjects';
 import { filterVerifiedRealQuestions } from '@/lib/question-provenance';
 import { recordAttempt } from '@/lib/attempts';
 import { useWrongAnswerTracker } from '@/hooks/useWrongAnswerTracker';
 import { saveDemoAttempt } from '@/lib/local-storage';
 import { answerLetter, questionAnswerDisplay, questionExplanationLabel, questionOptionDetails } from '@/lib/utils';
 
-interface SimuladoSessionProps { userId?: string }
+interface SimuladoSessionProps { studyRoleId: StudyRoleId; userId?: string }
 type Phase = 'setup' | 'running' | 'result';
 
 const SIMULATED_MINUTES = [15, 30, 60];
 
-export function SimuladoSession({ userId }: SimuladoSessionProps) {
+export function SimuladoSession({ studyRoleId, userId }: SimuladoSessionProps) {
+  const studyRole = getStudyRole(studyRoleId);
+  const roleSubjects = getSubjectsForRole(studyRoleId);
+  const roleSubjectNames = roleSubjects.map((item) => item.name);
   const [phase, setPhase] = useState<Phase>('setup');
   const [subject, setSubject] = useState('');
   const [questionCount, setQuestionCount] = useState(10);
@@ -54,12 +57,14 @@ export function SimuladoSession({ userId }: SimuladoSessionProps) {
   const tracker = useWrongAnswerTracker();
 
   const query = useQuery({
-    queryKey: ['simulado-questions'],
+    queryKey: ['simulado-questions', studyRoleId],
+    enabled: roleSubjectNames.length > 0,
     queryFn: async (): Promise<PcpaQuestion[]> => {
-      if (!isSupabaseConfigured) return [];
-      const { data, error } = await supabase.from('pcpa_questions').select('*').eq('source', 'concurso_real').order('created_at', { ascending: false }).limit(100);
+      if (!isSupabaseConfigured || !roleSubjectNames.length) return [];
+      const { data, error } = await supabase.from('pcpa_questions').select('*').eq('source', 'concurso_real').in('subject', roleSubjectNames).order('created_at', { ascending: false }).limit(200);
       if (error) throw error;
-      return filterVerifiedRealQuestions((data ?? []) as unknown as PcpaQuestion[]);
+      return filterVerifiedRealQuestions((data ?? []) as unknown as PcpaQuestion[])
+        .filter((question) => isSubjectInRole(studyRoleId, question.subject));
     },
   });
   const available = useMemo(() => (query.data ?? []).filter((question) => !subject || question.subject === subject), [query.data, subject]);
@@ -86,7 +91,12 @@ export function SimuladoSession({ userId }: SimuladoSessionProps) {
       toast.error('Ainda não há questões oficiais nesta seleção', { description: 'Escolha outra matéria ou busque questões reais no Banco de questões. O simulado não usa itens artificiais.' });
       return;
     }
-    const ordered = [...available].sort(() => Math.random() - 0.5).slice(0, questionCount);
+    const ordered = subject
+      ? [...available].sort(() => Math.random() - 0.5).slice(0, questionCount)
+      : sampleByOfficialWeights(available, studyRoleId, questionCount);
+    if (ordered.length < questionCount) {
+      toast.message('Sessão limitada ao acervo verificável', { description: `Há ${ordered.length} questões reais licenciadas e compatíveis nesta trilha; não completamos a prova com itens de IA.` });
+    }
     setActiveQuestions(ordered);
     setAnswers({});
     setCurrentIndex(0);
@@ -104,18 +114,18 @@ export function SimuladoSession({ userId }: SimuladoSessionProps) {
         let attemptId = '';
         let isCorrect = answerLetter(answer) === answerLetter(question.answer);
         try {
-          const attempt = await recordAttempt(question, answer, 0);
+          const attempt = await recordAttempt(question, answer, 0, studyRoleId);
           attemptId = attempt.id;
           isCorrect = attempt.isCorrect;
         } catch {
           // Preserve offline progress if the network or row policy is temporarily unavailable.
-          const attempt = saveDemoAttempt(question, answer, 0);
+          const attempt = saveDemoAttempt(question, answer, 0, studyRoleId);
           attemptId = attempt.id;
           isCorrect = attempt.is_correct;
         }
         if (!isCorrect) {
           try {
-            await tracker.mutateAsync({ question, attemptId, wrongAnswer: answer, isCorrect: false });
+            await tracker.mutateAsync({ question, attemptId, wrongAnswer: answer, isCorrect: false, studyRoleId });
           } catch {
             // Keep the result flow available even if the error notebook is temporarily offline.
           }
@@ -125,6 +135,7 @@ export function SimuladoSession({ userId }: SimuladoSessionProps) {
         const { error } = await supabase.from('pcpa_simulados').insert({
           user_id: userId,
           subject: subject || null,
+          study_role_id: studyRoleId,
           question_ids: activeQuestions.map((question) => question.id),
           answers,
           total_questions: activeQuestions.length,
@@ -165,10 +176,10 @@ export function SimuladoSession({ userId }: SimuladoSessionProps) {
   if (query.isError) return <Card className="p-8 text-sm text-rose-200">Não foi possível carregar as questões agora. Tente novamente em instantes.</Card>;
 
   if (phase === 'setup') return <div className="animate-float-in mx-auto max-w-5xl space-y-6">
-    <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-cyan-300"><FileQuestion className="h-3.5 w-3.5" /> Ambiente de prova</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Simulados</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Treine gestão de tempo, foco e tomada de decisão em uma sessão contínua.</p></div>
+    <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-cyan-300"><FileQuestion className="h-3.5 w-3.5" /> Ambiente de prova · {studyRole?.label} · {studyRole?.notice}</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Simulados</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Treine gestão de tempo, foco e tomada de decisão. A sessão respeita as matérias e os pesos do cargo ativo; o tamanho da prova completa segue o edital.</p></div>
     <div className="grid gap-4 lg:grid-cols-[1.3fr_.7fr]">
       <Card className="p-5 md:p-7"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-300/10 text-cyan-200"><FileQuestion className="h-5 w-5" /></span><div><h2 className="text-sm font-semibold text-white">Configure sua prova</h2><p className="mt-1 text-xs text-slate-500">Você poderá revisar o resultado ao final.</p></div></div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2"><label><span className="mb-1.5 block text-xs font-semibold text-slate-400">Matéria</span><select className="field-select" value={subject} onChange={(event) => setSubject(event.target.value)}><option value="">Todas as matérias</option>{PCPA_SUBJECTS.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}</select></label><label><span className="mb-1.5 block text-xs font-semibold text-slate-400">Quantidade de questões</span><select className="field-select" value={questionCount} onChange={(event) => setQuestionCount(Number(event.target.value))}><option value={5}>5 questões</option><option value={10}>10 questões</option><option value={20}>20 questões</option><option value={40}>40 questões</option></select></label></div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2"><label><span className="mb-1.5 block text-xs font-semibold text-slate-400">Matéria — {studyRole?.label}</span><select className="field-select" value={subject} onChange={(event) => setSubject(event.target.value)}><option value="">Todas as matérias da trilha</option>{roleSubjects.map((item) => { const profile = getRoleSubject(studyRoleId, item.name); const share = studyRole && profile ? Math.round(profile.points / studyRole.total_points * 100) : 0; return <option key={item.name} value={item.name}>{item.name} · {profile ? getPriorityLabel(profile.relative_priority) : ''} · {share}%</option>; })}</select></label><label><span className="mb-1.5 block text-xs font-semibold text-slate-400">Quantidade de questões</span><select className="field-select" value={questionCount} onChange={(event) => setQuestionCount(Number(event.target.value))}><option value={5}>5 questões</option><option value={10}>10 questões</option><option value={20}>20 questões</option><option value={40}>40 questões</option>{studyRole && <option value={studyRole.total_questions}>Prova completa · {studyRole.total_questions} questões</option>}</select></label></div>
         <div className="mt-5"><span className="mb-2 block text-xs font-semibold text-slate-400">Tempo de prova</span><div className="flex flex-wrap gap-2">{SIMULATED_MINUTES.map((value) => <button key={value} onClick={() => setMinutes(value)} className={`rounded-xl border px-4 py-2 text-xs transition ${minutes === value ? 'border-mint/25 bg-mint/[0.07] text-mint' : 'border-line text-slate-400 hover:bg-white/[0.04]'}`}>{value} min</button>)}</div></div>
         <div className="mt-5 grid gap-2 sm:grid-cols-2"><ToggleOption icon={TimerOff} title="Ocultar cronômetro" description="Faça uma sessão sem contagem regressiva" checked={timerHidden} onChange={() => setTimerHidden((value) => !value)} /><ToggleOption icon={Focus} title="Modo foco" description="Reduza distrações durante a prova" checked={focusMode} onChange={() => setFocusMode((value) => !value)} /></div>
         {!available.length && <p className="mt-5 rounded-xl border border-amber-300/10 bg-amber-300/[0.035] p-3 text-xs leading-5 text-amber-100/70">Ainda não há questões oficiais verificadas nesta seleção. Busque questões reais no Banco de questões; o simulado não será preenchido com itens artificiais.</p>}
@@ -193,6 +204,32 @@ export function SimuladoSession({ userId }: SimuladoSessionProps) {
     </div>
     <div className="flex items-center justify-between text-[10px] text-slate-600"><span className="flex items-center gap-1.5"><ShieldCheck className="h-3 w-3" />Progresso salvo ao finalizar</span><button onClick={() => { if (window.confirm('Deseja sair do simulado sem registrar o resultado?')) restart(); }} className="flex items-center gap-1 hover:text-rose-300"><ArrowLeft className="h-3 w-3" />Sair do simulado</button></div>
   </div>;
+}
+
+function sampleByOfficialWeights(questions: PcpaQuestion[], studyRoleId: StudyRoleId, count: number) {
+  const buckets = new Map<string, PcpaQuestion[]>();
+  for (const question of questions) {
+    const bucket = buckets.get(question.subject) ?? [];
+    bucket.push(question);
+    buckets.set(question.subject, bucket);
+  }
+  const result: PcpaQuestion[] = [];
+  while (result.length < count) {
+    const activeBuckets = [...buckets.entries()].filter(([, items]) => items.length > 0);
+    if (!activeBuckets.length) break;
+    const totalWeight = activeBuckets.reduce((sum, [subject]) => sum + (getRoleSubject(studyRoleId, subject)?.points ?? 1), 0);
+    let cursor = Math.random() * totalWeight;
+    let selected = activeBuckets[activeBuckets.length - 1];
+    for (const bucket of activeBuckets) {
+      cursor -= getRoleSubject(studyRoleId, bucket[0])?.points ?? 1;
+      if (cursor < 0) { selected = bucket; break; }
+    }
+    const [subject, items] = selected;
+    const selectedIndex = Math.floor(Math.random() * items.length);
+    result.push(items.splice(selectedIndex, 1)[0]);
+    if (!items.length) buckets.delete(subject);
+  }
+  return result;
 }
 
 function ToggleOption({ icon: Icon, title, description, checked, onChange }: { icon: typeof Clock3; title: string; description: string; checked: boolean; onChange: () => void }) {

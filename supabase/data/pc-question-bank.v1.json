@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_version": "2026-10-14.1",
+  "catalog_version": "2026-10-14.3",
   "last_reviewed": "2026-10-14",
   "policy": {
     "question_text": "Texto integral somente quando o documento oficial declara expressamente permissão de reprodução para fins didáticos, com citação da fonte.",
@@ -27,7 +27,8 @@
       "license_terms": "É permitida a reprodução deste material apenas para fins didáticos, desde que citada a fonte.",
       "license_evidence_url": "https://cdn.cebraspe.org.br/concursos/pc_df_19_escrivao/arquivos/MATRIZ_519_PCDF_001_00_BONECA_COMJUSTIFICATIVA.PDF",
       "catalog_status": "verified_pair_and_explicit_didactic_permission",
-      "verification_note": "O caderno contém justificativas oficiais; o gabarito definitivo identifica o cargo e a mesma Matriz_519_PCDF_001_00. As questões anuladas 58 e 62 não foram cadastradas."
+      "verification_note": "O caderno contém justificativas oficiais; o gabarito definitivo identifica o cargo e a mesma Matriz_519_PCDF_001_00. As questões anuladas 58 e 62 não foram cadastradas.",
+      "question_format": "certo_errado"
     },
     {
       "id": "pcdf-agente-2021",
@@ -44,7 +45,8 @@
       "official_contest_url": "https://www.cebraspe.org.br/concursos/pc_df_20_agente",
       "reproduction_permission": "not_verified",
       "catalog_status": "official_document_metadata_only",
-      "verification_note": "O PDF oficial contém itens e justificativas. Não foi confirmada permissão explícita de reprodução; por isso nenhum texto foi copiado para questions."
+      "verification_note": "O PDF oficial contém itens e justificativas. Não foi confirmada permissão explícita de reprodução; por isso nenhum texto foi copiado para questions.",
+      "question_format": "certo_errado"
     },
     {
       "id": "pcpa-c206-2021",
@@ -91,7 +93,8 @@
       "answer_url": "https://cdn.cebraspe.org.br/concursos/pc_ro_22/arquivos/GAB_DEFINITIVO_732_PCRO_CG4_01.PDF",
       "reproduction_permission": "not_verified",
       "catalog_status": "verified_pair_metadata_only",
-      "verification_note": "Caderno CG4 e gabarito definitivo CG4 identificam o Cargo 6 — Técnico em Necropsia e aplicação em 25/09/2022. Texto integral não copiado por falta de permissão explícita."
+      "verification_note": "Caderno CG4 e gabarito definitivo CG4 identificam o Cargo 6 — Técnico em Necropsia e aplicação em 25/09/2022. Texto integral não copiado por falta de permissão explícita.",
+      "question_format": "multipla_escolha"
     },
     {
       "id": "pces-delegado-2022-pair-pending",
@@ -107,7 +110,8 @@
       "official_contest_url": "https://www.cebraspe.org.br/concursos/pc_es_22_delegado",
       "reproduction_permission": "not_verified",
       "catalog_status": "official_documents_pairing_not_verified",
-      "verification_note": "Os dois documentos oficiais foram localizados, mas o código do caderno CG1_01 não foi reconciliado com o identificador 001_01 do gabarito. Não parear nem transcrever até confirmar."
+      "verification_note": "Os dois documentos oficiais foram localizados, mas o código do caderno CG1_01 não foi reconciliado com o identificador 001_01 do gabarito. Não parear nem transcrever até confirmar.",
+      "question_format": "multipla_escolha"
     },
     {
       "id": "pcpe-edital-2023-matriz-954",
@@ -122,7 +126,8 @@
       "official_contest_url": "https://cdn.cebraspe.org.br/concursos/pc_pe_23/arquivos/ED_1_2023_PC_PE_ABERTURA.PDF",
       "reproduction_permission": "not_verified",
       "catalog_status": "official_combined_question_and_justifications_metadata_only",
-      "verification_note": "O PDF oficial 954 contém questões e justificativas no mesmo documento. O cargo não foi confirmado diretamente no documento examinado e foi deixado sem preenchimento; texto integral não copiado."
+      "verification_note": "O PDF oficial 954 contém questões e justificativas no mesmo documento. O cargo não foi confirmado diretamente no documento examinado e foi deixado sem preenchimento; texto integral não copiado.",
+      "question_format": "multipla_escolha"
     },
     {
       "id": "pcmg-investigador-2025",
@@ -139,7 +144,8 @@
       "answer_url": "https://conhecimento.fgv.br/sites/default/files/concursos/gabaritodefinitivo_pcgmpinvestigador.pdf",
       "reproduction_permission": "not_verified",
       "catalog_status": "verified_pair_metadata_only",
-      "verification_note": "Caderno e gabarito definitivo identificam o mesmo cargo; o gabarito discrimina os tipos 1–4 e informa aplicação em 26/01/2025. Texto integral não copiado por falta de permissão explícita."
+      "verification_note": "Caderno e gabarito definitivo identificam o mesmo cargo; o gabarito discrimina os tipos 1–4 e informa aplicação em 26/01/2025. Texto integral não copiado por falta de permissão explícita.",
+      "question_format": "multipla_escolha"
     },
     {
       "id": "pcpi-oficial-investigador-2026",
@@ -157,7 +163,108 @@
       "official_contest_url": "https://conhecimento.fgv.br/concursos/pcpi25/2",
       "reproduction_permission": "not_verified",
       "catalog_status": "verified_pair_metadata_only",
-      "verification_note": "O caderno identifica Oficial Investigador, Tipo 1 — Branca. O gabarito definitivo identifica a prova Oficial Investigador — 1, turno da tarde, aplicada em 25/01/2026. Texto integral não copiado por falta de permissão explícita."
+      "verification_note": "O caderno identifica Oficial Investigador, Tipo 1 — Branca. O gabarito definitivo identifica a prova Oficial Investigador — 1, turno da tarde, aplicada em 25/01/2026. Texto integral não copiado por falta de permissão explícita.",
+      "question_format": "multipla_escolha"
+    },
+    {
+      "id": "pcrj-delegado-2022-662",
+      "police_civil": "Polícia Civil do Estado do Rio de Janeiro (PC/RJ)",
+      "uf": "RJ",
+      "contest": "XIII Concurso Público para Delegado de Polícia — 3ª Classe (Edital de 2021)",
+      "bank": "CEBRASPE",
+      "cargo": "Delegado de Polícia — 3ª Classe",
+      "notice_year": 2021,
+      "application_year": 2022,
+      "application_date": "2022-03-13",
+      "application_date_evidence_url": "https://cdn.cebraspe.org.br/concursos/pc_rj_21_delegado/arquivos/GAB_DEFINITIVO_662_PCRJ_001_01.PDF",
+      "caderno": "662_PCRJ_001_01",
+      "question_format": "multipla_escolha",
+      "question_url": "https://cdn.cebraspe.org.br/concursos/pc_rj_21_delegado/arquivos/662_PCRJ_001_01.PDF",
+      "answer_url": "https://cdn.cebraspe.org.br/concursos/pc_rj_21_delegado/arquivos/GAB_DEFINITIVO_662_PCRJ_001_01.PDF",
+      "official_contest_url": "https://www.cebraspe.org.br/concursos/pc_rj_21_delegado",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "verified_pair_metadata_only",
+      "verification_note": "Caderno e gabarito definitivo identificam o mesmo concurso, cargo e caderno 662_PCRJ_001_01; o gabarito informa aplicação em 13/03/2022. O caderno é de múltipla escolha. Permissão expressa de reprodução não confirmada; foram mantidos somente metadados e links oficiais."
+    },
+    {
+      "id": "pcpb-delegado-2022-627",
+      "police_civil": "Polícia Civil do Estado da Paraíba (PC/PB)",
+      "uf": "PB",
+      "contest": "Concurso Público para a Polícia Civil da Paraíba — Edital nº 01/2021-SEAD/SEDS/PC",
+      "bank": "CEBRASPE",
+      "cargo": "Delegado de Polícia Civil (Cargo 1 — A01)",
+      "notice_year": 2021,
+      "application_year": 2022,
+      "application_date": "2022-02-13",
+      "application_date_evidence_url": "https://cdn.cebraspe.org.br/concursos/pc_pb_21/arquivos/gab_definitivo_627_pcpb_001_01.pdf",
+      "caderno": "627_PCPB_001_01",
+      "question_format": "multipla_escolha",
+      "question_url": "https://cdn.cebraspe.org.br/concursos/pc_pb_21/arquivos/627_PCPB_001_01.PDF",
+      "answer_url": "https://cdn.cebraspe.org.br/concursos/pc_pb_21/arquivos/gab_definitivo_627_pcpb_001_01.pdf",
+      "official_contest_url": "https://www.cebraspe.org.br/concursos/pc_pb_21",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "verified_pair_metadata_only",
+      "verification_note": "Caderno e gabarito definitivo identificam o Cargo 1 — Delegado de Polícia Civil, o caderno 627_PCPB_001_01 e a aplicação em 13/02/2022; o caderno apresenta alternativas A–E. Permissão expressa de reprodução não confirmada; foram mantidos somente metadados e links oficiais."
+    },
+    {
+      "id": "pcpe-delegado-2024-955",
+      "police_civil": "Polícia Civil do Estado de Pernambuco (PCPE)",
+      "uf": "PE",
+      "contest": "PCPE — Edital nº 1, de 21/12/2023",
+      "bank": "CEBRASPE",
+      "cargo": "Delegado de Polícia",
+      "notice_year": 2023,
+      "application_year": 2024,
+      "application_date": "2024-03-03",
+      "application_date_evidence_url": "https://cdn.cebraspe.org.br/concursos/pc_pe_23/arquivos/GAB_DEFINITIVO_MATRIZ_955PC_PE_DELEGADO001_00.PDF",
+      "caderno": "MATRIZ_955PC_PE_DELEGADO001_00",
+      "question_format": "multipla_escolha",
+      "question_url": "https://cdn.cebraspe.org.br/concursos/pc_pe_23/arquivos/MATRIZ_955PC_PE_DELEGADO001_00_COM_JUSTIFICATIVAS.PDF",
+      "answer_url": "https://cdn.cebraspe.org.br/concursos/pc_pe_23/arquivos/GAB_DEFINITIVO_MATRIZ_955PC_PE_DELEGADO001_00.PDF",
+      "official_contest_url": "https://www.cebraspe.org.br/concursos/pc_pe_23",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "verified_pair_metadata_only",
+      "verification_note": "O caderno de questões e o gabarito definitivo correspondem ao mesmo cargo e ao identificador MATRIZ_955PC_PE_DELEGADO001_00; ambos indicam o concurso PCPE do Edital nº 1/2023, e o gabarito registra aplicação em 03/03/2024. O caderno é de múltipla escolha. Permissão expressa de reprodução não confirmada; foram mantidos somente metadados e links oficiais."
+    },
+    {
+      "id": "pcsc-delegado-2024-fgv-tipo-1",
+      "police_civil": "Polícia Civil do Estado de Santa Catarina (PCSC)",
+      "uf": "SC",
+      "contest": "Concurso Público 2023 — Edital nº 1 — Delegado de Polícia Substituto",
+      "bank": "FGV",
+      "cargo": "Delegado de Polícia Substituto",
+      "notice_year": 2023,
+      "application_year": 2024,
+      "application_date": "2024-01-28",
+      "application_date_evidence_url": "https://conhecimento.fgv.br/sites/default/files/concursos/pcscdelegado2024_gabarito_definitivo_20240220.pdf",
+      "caderno": "Tipo 1",
+      "question_format": "multipla_escolha",
+      "question_url": "https://conhecimento.fgv.br/sites/default/files/concursos/delegado-objetivacns100-tipo-1.pdf",
+      "answer_url": "https://conhecimento.fgv.br/sites/default/files/concursos/pcscdelegado2024_gabarito_definitivo_20240220.pdf",
+      "official_contest_url": "https://conhecimento.fgv.br/concursos/pcsc23/1",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "verified_pair_metadata_only",
+      "verification_note": "A página oficial da FGV identifica o concurso e o cargo; o caderno e o gabarito definitivo identificam Delegado de Polícia Substituto, Tipo 1, e o gabarito informa aplicação em 28/01/2024. O caderno é de múltipla escolha. Permissão expressa de reprodução não confirmada; foram mantidos somente metadados e links oficiais."
+    },
+    {
+      "id": "pcmg-delegado-2025-fgv-tipo-1",
+      "police_civil": "Polícia Civil do Estado de Minas Gerais (PCMG)",
+      "uf": "MG",
+      "contest": "PCMG — Concurso Público, Edital nº 01/2024 — Delegado de Polícia Substituto",
+      "bank": "FGV",
+      "cargo": "Delegado de Polícia Substituto",
+      "notice_year": 2024,
+      "application_year": 2025,
+      "application_date": "2025-01-26",
+      "application_date_evidence_url": "https://conhecimento.fgv.br/sites/default/files/concursos/gabaritodefinitivo_pcgmpdelegado.pdf",
+      "caderno": "Tipo 1",
+      "question_format": "multipla_escolha",
+      "question_url": "https://conhecimento.fgv.br/sites/default/files/concursos/delegado-de-policia-substitutocns101-tipo-1.pdf",
+      "answer_url": "https://conhecimento.fgv.br/sites/default/files/concursos/gabaritodefinitivo_pcgmpdelegado.pdf",
+      "official_contest_url": "https://conhecimento.fgv.br/concursos/pcmg24/01",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "verified_pair_metadata_only",
+      "verification_note": "A página oficial da FGV identifica o concurso e o cargo; o caderno e o gabarito definitivo identificam Delegado de Polícia Substituto, Tipo 1, e o gabarito informa aplicação em 26/01/2025. O caderno é de múltipla escolha. Permissão expressa de reprodução não confirmada; foram mantidos somente metadados e links oficiais."
     }
   ],
   "questions": [

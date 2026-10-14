@@ -1,11 +1,13 @@
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
+import type { StudyRoleId } from '@/lib/constants/subjects';
 
 export interface TutorMessage { role: 'user' | 'assistant'; content: string }
 
 export async function streamTutorReply(
   messages: TutorMessage[],
   questionContext: PcpaQuestion | null,
+  studyRoleId: StudyRoleId,
   onChunk: (text: string) => void,
   signal?: AbortSignal,
 ) {
@@ -25,6 +27,7 @@ export async function streamTutorReply(
       Accept: 'text/event-stream',
     },
     body: JSON.stringify({
+      role: studyRoleId,
       messages,
       questionContext: questionContext ? {
         subject: questionContext.subject,

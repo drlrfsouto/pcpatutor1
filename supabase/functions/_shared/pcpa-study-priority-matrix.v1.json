@@ -1,0 +1,2025 @@
+{
+  "schema_version": 1,
+  "version": "2026-10-14.2",
+  "last_reviewed": "2026-10-14",
+  "language": "pt-BR",
+  "methodology": {
+    "title": "Prioridade relativa, não previsão",
+    "disclaimer": "As prioridades organizam o tempo de estudo com base na distribuição oficial dos editais C-206/2020 e C-207/2020 e em comparações temáticas de provas e revisões. Não são probabilidades, não garantem incidência futura e não substituem a leitura do edital vigente.",
+    "historical_notice_warning": "C-206/2020 e C-207/2020 são editais históricos. A matriz só representa esses editais; atualize-a quando houver novo edital da PCPA. Questões jurídicas devem ser temporalmente enquadradas e conferidas em legislação oficial vigente.",
+    "role_separation": "A interface mostra uma única trilha por vez. Conteúdos comuns podem aparecer em mais de uma trilha; matérias específicas permanecem apenas nos cargos a que pertencem.",
+    "priority_rules": {
+      "alta": "10% ou mais dos pontos da prova objetiva daquele cargo, conforme tabela oficial do edital.",
+      "media": "De 5% a menos de 10% dos pontos da prova objetiva daquele cargo.",
+      "base": "Menos de 5% dos pontos da prova objetiva daquele cargo. Continua sendo conteúdo expresso do edital e não deve ser ignorado.",
+      "topic_order": "A ordem dos tópicos é um roteiro de foco baseado no programa do edital e em recorrência comparativa/revisões; não há contagem estatística uniforme por subtema para todos os concursos."
+    },
+    "comparative_method": "Os pesos da PCPA são calculados exclusivamente pelas tabelas oficiais do C-206/C-207. Provas de PCMG, PCPI e PC-SP e índices de revisão servem apenas para contextualizar temas recorrentes; seus pesos não são transferidos à PCPA.",
+    "question_policy": "Questões reais integrais só podem ser exibidas quando a permissão explícita de reprodução, a origem e o gabarito estiverem comprovados. Caso contrário, a busca mantém apenas metadados e links oficiais. Itens autorais de IA são novos, identificados como IA e não são salvos no banco oficial.",
+    "source_validation_note": "O Anexo II e as Tabelas 9.1–9.3 foram conferidos na publicação primária do DOE nº 34.405 (IOEPA); as distribuições também foram cotejadas com a versão oficial retificada do Instituto AOCP. Matérias, pesos e recortes dos três cargos correspondem ao C-207/2020 histórico. Não substitui edital futuro."
+  },
+  "sources": [
+    {
+      "id": "pcpa-c206-edital",
+      "title": "Edital de abertura C-206/2020 — SEPLAD/PCPA, Instituto AOCP",
+      "url": "https://arquivos-site.institutoaocp.org.br/publicacoes/edital_pcpa_c206.pdf",
+      "source_type": "edital_oficial",
+      "sections": [
+        "Tabela 9.1",
+        "itens 9.2–9.5",
+        "Anexo II"
+      ],
+      "use": "Base oficial da distribuição de 80 questões, pontos por matéria, formato A–E e programa do cargo de Delegado.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpa-c207-edital",
+      "title": "DOE nº 34.405, de 13/11/2020 — edital de abertura C-207/2020 (IOEPA)",
+      "url": "https://www.ioepa.com.br/pages/2020/2020.11.13.DOE.pdf",
+      "source_type": "edital_oficial",
+      "sections": [
+        "Tabelas 9.1–9.3",
+        "itens 9.2–9.5",
+        "Anexo II — Conteúdo Programático (Investigador, Escrivão e Papiloscopista)"
+      ],
+      "use": "Fonte primária da publicação do C-207/2020. Conferidos os pesos e quantidades das provas e o programa comum e específico para Investigador, Escrivão e Papiloscopista.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpa-c206-contest-page",
+      "title": "Página oficial do concurso PCPA C-206",
+      "url": "https://www2.institutoaocp.org.br/concurso.jsp?id=289",
+      "source_type": "banca_oficial",
+      "use": "Referência do concurso; não comprova licença geral para reproduzir cadernos.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpa-c207-contest-page",
+      "title": "Página oficial do concurso PCPA C-207",
+      "url": "https://admin.institutoaocp.org.br/concurso.jsp?id=302",
+      "source_type": "banca_oficial",
+      "use": "Referência do concurso e publicações; não comprova licença geral para reproduzir cadernos.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpa-c207-aocp-retified",
+      "title": "C-207/2020 — edital oficial retificado/consolidado, Instituto AOCP",
+      "url": "https://arquivos-site.institutoaocp.org.br/publicacoes/pcpa_editalc207.pdf",
+      "source_type": "banca_oficial",
+      "sections": [
+        "Tabelas 9.1–9.3",
+        "Anexo II"
+      ],
+      "use": "Versão oficial retificada/consolidada da banca, consultada para cotejar as tabelas de distribuição e alterações do edital; o programa detalhado do Anexo II é confirmado pela publicação primária do DOE nº 34.405.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpa-c207-investigator-paper",
+      "title": "C-207/2021 — caderno de Investigador, arquivo de consulta QConcursos",
+      "url": "https://arquivos.qconcursos.com/prova/arquivo_prova/82583/instituto-aocp-2021-pc-pa-investigador-de-policia-civil-prova.pdf",
+      "source_type": "arquivo_secundario_de_prova",
+      "use": "Consulta de identificação de disciplinas e temas da prova anterior; nenhum enunciado ou alternativa foi reutilizado.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpa-c207-escrivao-paper",
+      "title": "C-207/2021 — caderno de Escrivão, arquivo de consulta QConcursos",
+      "url": "https://arquivos.qconcursos.com/prova/arquivo_prova/82585/instituto-aocp-2021-pc-pa-escrivao-de-policia-civil-prova.pdf",
+      "source_type": "arquivo_secundario_de_prova",
+      "use": "Consulta de identificação de disciplinas e temas da prova anterior; nenhum enunciado ou alternativa foi reutilizado.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpa-c207-papiloscopista-paper",
+      "title": "C-207/2021 — caderno de Papiloscopista, arquivo de consulta QConcursos",
+      "url": "https://arquivos.qconcursos.com/prova/arquivo_prova/82640/instituto-aocp-2021-pc-pa-papiloscopista-prova.pdf",
+      "source_type": "arquivo_secundario_de_prova",
+      "use": "Consulta de identificação de disciplinas e temas da prova anterior, especialmente o bloco científico; nenhum enunciado ou alternativa foi reutilizado.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpa-tec-investigator-penal",
+      "title": "TEC Concursos — guia de Direito Penal para Investigador PCPA 2021",
+      "url": "https://www.tecconcursos.com.br/guias/pc-pa-2020-02/investigador-de-policia-civil-pc-pa/-/-/direito-penal-para-investigador-pc-pa-2021/id",
+      "source_type": "material_de_revisao_secundario",
+      "use": "Índice temático de revisão/banco de questões para orientar foco de subtemas; não é fonte de autorização nem de texto de questões.",
+      "reproduction_permission": "not_applicable"
+    },
+    {
+      "id": "pcpa-tec-escrivao-archivology",
+      "title": "TEC Concursos — guia de Arquivologia para Escrivão PCPA 2021",
+      "url": "https://www.tecconcursos.com.br/guias/pc-pa-2020-02/escrivao-de-policia-civil-pc-pa/-/-/arquivologia-para-escrivao-pc-pa-2021/id",
+      "source_type": "material_de_revisao_secundario",
+      "use": "Índice temático de revisão para Arquivologia; contagens de banco de questões não são tratadas como frequência oficial da prova.",
+      "reproduction_permission": "not_applicable"
+    },
+    {
+      "id": "pcmg-investigator-2025",
+      "title": "PCMG 2025 — caderno e gabarito definitivo de Investigador, FGV",
+      "url": "https://conhecimento.fgv.br/sites/default/files/concursos/investigador-de-policia-icns401-tipo-1.pdf",
+      "answer_url": "https://conhecimento.fgv.br/sites/default/files/concursos/gabaritodefinitivo_pcgmpinvestigador.pdf",
+      "official_contest_url": "https://conhecimento.fgv.br/concursos/pcmg24/04",
+      "source_type": "prova_oficial_comparativa",
+      "use": "Comparação de distribuição e temas de Investigador; não transfere pesos para a PCPA e não autoriza reprodução integral.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcpi-investigator-2026",
+      "title": "PCPI — Edital nº 02/2025 e prova de Oficial Investigador aplicada em 2026, FGV",
+      "url": "https://conhecimento.fgv.br/sites/default/files/concursos/edital_de_abertura_pcpi_peritos_e_investigador_-_versao_final_-18.09_assinado-ok.pdf",
+      "exam_url": "https://conhecimento.fgv.br/sites/default/files/concursos/oficial-investigador-cns100-tipo-1.pdf",
+      "answer_url": "https://conhecimento.fgv.br/sites/default/files/concursos/pc-pi-investigador-e-perito-2025.pdf",
+      "official_contest_url": "https://conhecimento.fgv.br/concursos/pcpi25/2",
+      "source_type": "edital_e_prova_oficiais_comparativos",
+      "use": "Comparação de pesos e blocos em prova recente de Oficial Investigador; não transfere pesos para a PCPA e não autoriza reprodução integral.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcsp-investigator-2022",
+      "title": "PC-SP — Edital IP 1/2022 de Investigador, VUNESP",
+      "url": "https://documento.vunesp.com.br/documento/stream/MjY5MzgzMw==",
+      "source_type": "edital_oficial_comparativo",
+      "use": "Comparação de formato e distribuição: 80 questões, com Português 15, Direito 15, Criminologia 10, Informática 20 e Lógica 20.",
+      "reproduction_permission": "not_verified"
+    },
+    {
+      "id": "pcsp-tec-informatics-review",
+      "title": "TEC Concursos — índice de revisão de Informática para Investigador PC-SP 2022",
+      "url": "https://www.tecconcursos.com.br/guias/pc-sp-2022/investigador-de-policia-pc-sp/-/-/nocoes-de-informatica-para-investigador-de-policia-pc-sp-2022/id",
+      "source_type": "material_de_revisao_secundario",
+      "use": "Contextualização dos subtemas de Informática em banco/revisão VUNESP; não é contagem oficial nem fonte de reprodução.",
+      "reproduction_permission": "not_applicable"
+    },
+    {
+      "id": "pcsp-vunesp-investigator-review",
+      "title": "Aprova Concursos — revisão de temas para Investigador PC-SP 2022",
+      "url": "https://d1lpyqedjaq3m8.cloudfront.net/aprova/arquivosconcursos/preparatorios/2022/03/1648142110_24032022pcspinvestigadortemasmaiscobrados.pdf",
+      "source_type": "material_de_revisao_secundario",
+      "use": "Leitura complementar de tópicos recorrentes segundo curso/revisão VUNESP; não é previsão nem fonte de reprodução.",
+      "reproduction_permission": "not_applicable"
+    }
+  ],
+  "comparators": [
+    {
+      "source_id": "pcmg-investigator-2025",
+      "label": "PCMG 2025 — Investigador (70 questões)",
+      "distribution": [
+        {
+          "subject": "Língua Portuguesa",
+          "questions": 10
+        },
+        {
+          "subject": "Raciocínio Lógico",
+          "questions": 6
+        },
+        {
+          "subject": "Informática",
+          "questions": 8
+        },
+        {
+          "subject": "Legislação Organizacional",
+          "questions": 6
+        },
+        {
+          "subject": "Direito Administrativo",
+          "questions": 6
+        },
+        {
+          "subject": "Direito Constitucional",
+          "questions": 6
+        },
+        {
+          "subject": "Direito Penal Geral",
+          "questions": 5
+        },
+        {
+          "subject": "Direito Processual Penal",
+          "questions": 5
+        },
+        {
+          "subject": "Legislação Penal Extravagante",
+          "questions": 4
+        },
+        {
+          "subject": "Direitos Humanos",
+          "questions": 4
+        },
+        {
+          "subject": "Medicina Legal",
+          "questions": 5
+        },
+        {
+          "subject": "Criminologia",
+          "questions": 5
+        }
+      ],
+      "note": "Distribuição do edital FGV do cargo comparável; categorias e pesos não são equivalentes aos da PCPA."
+    },
+    {
+      "source_id": "pcpi-investigator-2026",
+      "label": "PCPI 2026 — Oficial Investigador (80 questões)",
+      "distribution": [
+        {
+          "subject": "Língua Portuguesa",
+          "questions": 8
+        },
+        {
+          "subject": "Informática",
+          "questions": 8
+        },
+        {
+          "subject": "Raciocínio Lógico, Estatística e Contabilidade",
+          "questions": 6
+        },
+        {
+          "subject": "Conhecimentos locais",
+          "questions": 8
+        },
+        {
+          "subject": "Direito Administrativo",
+          "questions": 6
+        },
+        {
+          "subject": "Direito Constitucional",
+          "questions": 6
+        },
+        {
+          "subject": "Direito Penal Geral",
+          "questions": 10
+        },
+        {
+          "subject": "Direito Processual Penal",
+          "questions": 10
+        },
+        {
+          "subject": "Legislação institucional",
+          "questions": 4
+        },
+        {
+          "subject": "Direitos Humanos",
+          "questions": 6
+        },
+        {
+          "subject": "Criminologia",
+          "questions": 4
+        },
+        {
+          "subject": "Medicina Legal",
+          "questions": 4
+        }
+      ],
+      "note": "Distribuição do edital FGV de Oficial Investigador; o bloco combinado de RLM/Estatística/Contabilidade não é decomposto para comparação com a PCPA."
+    },
+    {
+      "source_id": "pcsp-investigator-2022",
+      "label": "PC-SP 2022 — Investigador (80 questões)",
+      "distribution": [
+        {
+          "subject": "Língua Portuguesa",
+          "questions": 15
+        },
+        {
+          "subject": "Noções de Direito",
+          "questions": 15
+        },
+        {
+          "subject": "Criminologia",
+          "questions": 10
+        },
+        {
+          "subject": "Informática",
+          "questions": 20
+        },
+        {
+          "subject": "Noções de Lógica",
+          "questions": 20
+        }
+      ],
+      "note": "Estrutura do edital oficial VUNESP; serve para comparar diversidade de formatos e nunca como peso da PCPA."
+    }
+  ],
+  "roles": [
+    {
+      "id": "delegado",
+      "label": "Delegado",
+      "notice": "C-206/2020",
+      "source_id": "pcpa-c206-edital",
+      "total_questions": 80,
+      "total_points": 10,
+      "question_format": {
+        "type": "multipla_escolha",
+        "alternatives": 5,
+        "correct_answers": 1
+      },
+      "discursive_note": "O C-206 também previa peça processual de 10 pontos. Esta matriz cobre somente a prova objetiva; o gerador de itens não cria peça processual.",
+      "subjects": [
+        {
+          "name": "Língua Portuguesa",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Compreensão e interpretação; tipos e gêneros; ortografia e coesão; morfossintaxe, classes de palavras, coordenação e subordinação; pontuação, concordância, regência, crase e colocação pronominal; significação e reescrita.",
+          "topics": [
+            {
+              "name": "Compreensão, inferência e interpretação de textos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcsp-investigator-2022"
+              ]
+            },
+            {
+              "name": "Coesão, conectores e reescrita de frases e parágrafos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcsp-vunesp-investigator-review"
+              ]
+            },
+            {
+              "name": "Morfossintaxe, pontuação, concordância, regência e crase",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Informática",
+          "question_count": 2,
+          "points": 0.2,
+          "relative_priority": "base",
+          "scope_summary": "Fundamentos de computação e hardware/software; sistemas operacionais Windows e GNU/Linux; redes, modelos e protocolos; Internet/Intranet, navegadores, correio eletrônico e aplicativos; segurança da informação; edição de textos, planilhas e apresentações.",
+          "topics": [
+            {
+              "name": "Segurança da informação, malware e medidas de proteção",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            },
+            {
+              "name": "Windows/Linux, arquivos e aplicativos de escritório",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            },
+            {
+              "name": "Redes, protocolos, Internet, navegadores e e-mail",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Conhecimentos sobre o Estado do Pará",
+          "question_count": 2,
+          "points": 0.2,
+          "relative_priority": "base",
+          "scope_summary": "Realidade étnica, social, histórica, geográfica, cultural, política e econômica do Pará; questão agrária e minerária e conflitos territoriais; Regiões Integradas de Segurança Pública; Constituição do Estado do Pará.",
+          "topics": [
+            {
+              "name": "História, geografia, sociedade e economia paraense",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Questões agrária, minerária e conflitos territoriais",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "RISPs e Constituição do Estado do Pará",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Administrativo",
+          "question_count": 8,
+          "points": 0.8,
+          "relative_priority": "media",
+          "scope_summary": "Estado, governo e administração pública; princípios e organização administrativa; agentes públicos e RJU; poderes e atos administrativos; intervenção na propriedade; serviços públicos; controle e responsabilidade civil do Estado; licitações e contratos; processo administrativo estadual; Lei Orgânica da PCPA.",
+          "topics": [
+            {
+              "name": "Atos e poderes administrativos; abuso de poder",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Agentes públicos, RJU do Pará e regime disciplinar",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Organização administrativa, controle e responsabilidade estatal",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Licitações, contratos e processo administrativo do Pará",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Constitucional",
+          "question_count": 8,
+          "points": 0.8,
+          "relative_priority": "media",
+          "scope_summary": "Teoria da Constituição e poder constituinte; direitos e garantias fundamentais; organização político-administrativa e competências; Poderes; funções essenciais à Justiça; controle de constitucionalidade; defesa do Estado, segurança pública e ordem social.",
+          "topics": [
+            {
+              "name": "Direitos e garantias fundamentais e remédios constitucionais",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Organização do Estado, competências e Poderes",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Segurança pública e controle de constitucionalidade",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Penal Geral",
+          "question_count": 10,
+          "points": 2,
+          "relative_priority": "alta",
+          "scope_summary": "Princípios, fontes e aplicação da lei penal; teoria do crime, fato típico, dolo e culpa, erro, ilicitude, culpabilidade, tentativa e consumação; concurso de pessoas e de crimes; ação penal, punibilidade e prescrição; crimes previstos no Código Penal, com destaque para pessoa, patrimônio e administração pública.",
+          "topics": [
+            {
+              "name": "Lei penal no tempo e no espaço; princípios e conflito aparente de normas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Fato típico, dolo/culpa, erro, ilicitude e culpabilidade",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal"
+              ]
+            },
+            {
+              "name": "Tentativa, concurso de pessoas/crimes e crimes patrimoniais ou funcionais",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Processual Penal",
+          "question_count": 10,
+          "points": 2,
+          "relative_priority": "alta",
+          "scope_summary": "Processo penal constitucional; aplicação da lei processual; inquérito policial; ação penal; jurisdição e competência; prova; sujeitos; prisão, cautelares e liberdade; procedimentos, prazos, nulidades, recursos, habeas corpus, execução penal e investigação criminal.",
+          "topics": [
+            {
+              "name": "Inquérito policial, investigação e diligências",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Ação penal, competência e prova",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal"
+              ]
+            },
+            {
+              "name": "Prisão, medidas cautelares, procedimentos e nulidades",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Civil",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "LINDB; pessoas naturais e jurídicas; domicílio; bens; fatos, atos e negócios jurídicos; prescrição e decadência; posse e propriedade; direitos reais; responsabilidade civil.",
+          "topics": [
+            {
+              "name": "LINDB, pessoas, domicílio e bens",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Negócio jurídico, prescrição e decadência",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Posse, propriedade e responsabilidade civil",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Processual Civil",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "CPC/2015; normas processuais; jurisdição, competência e organização judiciária; garantias constitucionais; tutela provisória e tutela de urgência.",
+          "topics": [
+            {
+              "name": "Jurisdição, competência e organização judiciária",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Habeas corpus, mandado de segurança e ações constitucionais",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Tutela provisória e tutela de urgência",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Ambiental",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Princípios e proteção constitucional ambiental; legislação florestal e unidades de conservação; polícia ambiental, crimes e infrações; licenciamento, SISNAMA/SNUC, biodiversidade, biossegurança, responsabilidade ambiental e recursos hídricos.",
+          "topics": [
+            {
+              "name": "Crimes e infrações ambientais; poder de polícia ambiental",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Licenciamento, SISNAMA/SNUC e proteção florestal",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Dano, reparação ambiental e recursos hídricos",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direitos Humanos",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Constituição de 1988; Declaração Universal; Convenção contra a Tortura; teoria, terminologia, estrutura normativa e evolução histórica; garantias processuais e incorporação de tratados ao direito brasileiro.",
+          "topics": [
+            {
+              "name": "Teoria, evolução histórica e fontes de Direitos Humanos",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Tratados internacionais, incorporação e hierarquia",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Garantias processuais e proteção contra tortura",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcsp-investigator-2022"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Legislação Especial",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Legislação e alterações listadas no Anexo II do C-206: abuso de autoridade, crimes hediondos e racismo, drogas, tortura, ECA, desarmamento, interceptação, execução penal, consumidor, lavagem, crimes ambientais, juizados, CTB, ordem tributária/econômica, organização criminosa, idoso, identificação criminal, prisão temporária, violência doméstica, contravenções, Lei 12.830 e Pacote Anticrime.",
+          "topics": [
+            {
+              "name": "Lei de Drogas, Organização Criminosa e Lei Maria da Penha",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Abuso de autoridade, hediondos, tortura e ECA",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Desarmamento, identificação criminal, prisão temporária e CTB",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Criminologia",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Conceito, objeto e método; escolas clássica e positivista; teorias sociológicas e críticas; vitimologia e cifras da criminalidade; sistema de Justiça Criminal, segurança pública, mídia, política criminal e discursos punitivos.",
+          "topics": [
+            {
+              "name": "Objeto, método, escolas e teorias criminológicas",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcmg-investigator-2025",
+                "pcsp-investigator-2022"
+              ]
+            },
+            {
+              "name": "Vitimologia, vitimização e cifras da criminalidade",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Sistema de Justiça Criminal e política criminal",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcsp-investigator-2022"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Medicina Legal",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Perícia, corpo de delito e documentos médico-legais; identificação; traumatologia; morte, tanatologia e cronotanatognose; exame de local; toxicologia, sexologia, asfixias, aborto, infanticídio, imputabilidade e capacidade.",
+          "topics": [
+            {
+              "name": "Traumatologia forense e lesões",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Tanatologia, causa jurídica da morte e local de crime",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital"
+              ]
+            },
+            {
+              "name": "Toxicologia, sexologia, asfixias e imputabilidade",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c206-edital",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "investigador",
+      "label": "Investigador",
+      "notice": "C-207/2020",
+      "source_id": "pcpa-c207-edital",
+      "total_questions": 60,
+      "total_points": 10,
+      "question_format": {
+        "type": "multipla_escolha",
+        "alternatives": 5,
+        "correct_answers": 1
+      },
+      "discursive_note": "O C-207 também previa uma questão discursiva de conhecimentos específicos. Esta matriz cobre somente a prova objetiva.",
+      "subjects": [
+        {
+          "name": "Língua Portuguesa",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Compreensão e interpretação; tipos e gêneros; ortografia e coesão; morfossintaxe, classes de palavras, coordenação e subordinação; pontuação, concordância, regência, crase e colocação pronominal; significação e reescrita.",
+          "topics": [
+            {
+              "name": "Compreensão, inferência e interpretação de textos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Coesão, conectores e reescrita",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-investigator-2022"
+              ]
+            },
+            {
+              "name": "Morfossintaxe, pontuação, concordância, regência e crase",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Raciocínio Lógico",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Estruturas lógicas e lógica de argumentação; analogias, inferências e deduções; lógica sentencial/proposicional, proposições simples e compostas, valores lógicos, conectivos, tabela-verdade, equivalências e Leis de Morgan; princípios fundamentais de contagem e probabilidade, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Proposições, conectivos, valores lógicos, tabela-verdade, equivalências e Leis de Morgan",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Lógica de argumentação, analogias, inferências e deduções",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Princípios fundamentais de contagem, probabilidade e problemas lógicos",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-investigator-2022"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Informática",
+          "question_count": 2,
+          "points": 0.2,
+          "relative_priority": "base",
+          "scope_summary": "Arquitetura e componentes do computador; hardware, software, entrada, saída e armazenamento; princípios de sistemas operacionais; redes locais, metropolitanas e de longa distância, topologias, modelos OSI/ISO e TCP/IP e protocolos; vírus, worms, pragas virtuais e aplicativos de segurança; Internet/Intranet, navegadores, correio eletrônico, grupos, busca, pesquisa e redes sociais; acesso remoto, transferência de arquivos e multimídia; Windows 10 e GNU/Linux; edição de textos, planilhas e apresentações em Microsoft e LibreOffice; teoria da informação, dados, representação, conhecimento, segurança e inteligência, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Arquitetura, hardware/software, armazenamento, Windows 10 e GNU/Linux",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            },
+            {
+              "name": "Redes, modelos OSI/TCP-IP, protocolos, malware, segurança e acesso remoto",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            },
+            {
+              "name": "Internet, navegadores, correio, grupos/redes sociais, multimídia, ferramentas de escritório e teoria da informação",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Conhecimentos sobre o Estado do Pará",
+          "question_count": 2,
+          "points": 0.2,
+          "relative_priority": "base",
+          "scope_summary": "Realidade étnica, social, histórica, geográfica, cultural, política e econômica do Pará; questão agrária e minerária e conflitos territoriais; particularidades socioeconômicas das Regiões Integradas de Segurança Pública (RISPs), instituídas pela Resolução nº 185/2012 do CONSEP; Constituição do Estado do Pará, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Realidade étnica, histórica, geográfica, social, cultural, política e econômica do Pará",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper"
+              ]
+            },
+            {
+              "name": "Questões agrária e minerária, conflitos territoriais e Regiões Integradas de Segurança Pública",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Constituição do Estado do Pará e organização político-administrativa local",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Estatística",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Estatística descritiva e análise exploratória; gráficos, diagramas e tabelas; medidas de posição, dispersão, assimetria e curtose; probabilidade, axiomas, probabilidade condicional e independência.",
+          "topics": [
+            {
+              "name": "Leitura de tabelas, gráficos e medidas descritivas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Média, mediana, dispersão, assimetria e curtose",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Probabilidade, condicional e independência",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Contabilidade",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Conceitos e finalidades; princípios e regimes; patrimônio e equação patrimonial; atos e fatos administrativos; contas e plano de contas; balanço patrimonial; demonstração do resultado; NBC TSP Estrutura Conceitual indicada no edital.",
+          "topics": [
+            {
+              "name": "Patrimônio, equação patrimonial e situações líquidas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Contas, débitos/créditos, plano de contas e balanço",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Atos/fatos administrativos, DRE e NBC TSP",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Administrativo",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Organização administrativa (centralização, descentralização, concentração, desconcentração; administração direta/indireta; autarquias, fundações, empresas públicas e sociedades de economia mista); atos administrativos (conceito, requisitos, atributos, classificação e espécies); agentes públicos e legislação pertinente, incluindo LC nº 22/1994, Lei estadual nº 5.810/1994 e disposições constitucionais; poderes hierárquico, disciplinar, regulamentar e de polícia, uso e abuso; licitações e contratos conforme Lei nº 8.666/1993 e alterações (princípios, contratação direta, dispensa, inexigibilidade, modalidades, tipos e procedimentos); controle judicial e legislativo; responsabilidade civil do Estado (ação, omissão, requisitos, excludentes e atenuantes); Lei estadual nº 8.972/2020, sobre processo administrativo no Pará, conforme o Anexo II histórico do C-207.",
+          "topics": [
+            {
+              "name": "Organização administrativa, administração direta/indireta e entidades administrativas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Atos administrativos, agentes públicos, LC nº 22/1994 e RJU do Pará",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Poderes e abuso, licitações/contratos, controle, responsabilidade estatal e processo administrativo do Pará",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Constitucional",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Direitos e deveres individuais e coletivos, direitos à vida, liberdade, igualdade, segurança e propriedade, direitos sociais, nacionalidade, cidadania, direitos políticos, partidos políticos e garantias individuais, coletivas, sociais e políticas; Administração Pública; forma e sistema de governo e funções de chefe de Estado e de governo; defesa do Estado e das instituições democráticas, segurança pública e sua organização; bases e objetivos da ordem social, seguridade social, meio ambiente, família, criança, adolescente, pessoa idosa e povos indígenas, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Direitos e garantias individuais e coletivos, direitos sociais, nacionalidade, cidadania e direitos políticos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Administração Pública, Poder Executivo, defesa do Estado e segurança pública",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Ordem social, seguridade, meio ambiente e proteção da família, da criança, do adolescente, da pessoa idosa e dos povos indígenas",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Penal Geral",
+          "question_count": 10,
+          "points": 2,
+          "relative_priority": "alta",
+          "scope_summary": "Princípios básicos; lei penal no tempo e no espaço, tempo e lugar do crime, lei excepcional/especial/temporária, contagem de prazo e irretroatividade; conceito analítico de crime, consumação e tentativa, ilicitude e causas de exclusão, excesso punível e concurso de pessoas; crimes contra a pessoa, o patrimônio e a Administração Pública; disposições constitucionais aplicáveis ao Direito Penal, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Aplicação da lei penal e princípios",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Teoria do crime, dolo/culpa, erro e excludentes",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal"
+              ]
+            },
+            {
+              "name": "Crimes contra pessoa, patrimônio e administração pública",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Processual Penal",
+          "question_count": 10,
+          "points": 2,
+          "relative_priority": "alta",
+          "scope_summary": "Disposições preliminares do CPP; inquérito policial (histórico, natureza, conceito, finalidade, características, fundamento, titularidade, grau de cognição, valor probatório, instauração, notitia criminis, delatio criminis, procedimentos investigativos, indiciamento, garantias do investigado e conclusão); ação penal, competência, prova, citações e intimações; prisão e liberdade provisória; disposições constitucionais de processo penal e Lei nº 9.099/1995, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Inquérito policial: instauração, notitia/delatio criminis, diligências, indiciamento e garantias do investigado",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Ação penal, competência, prova, citações e intimações",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal"
+              ]
+            },
+            {
+              "name": "Prisão, liberdade provisória, Lei nº 9.099/1995 e disposições constitucionais processuais",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Legislação Especial",
+          "question_count": 6,
+          "points": 0.6,
+          "relative_priority": "media",
+          "scope_summary": "Somente as leis e alterações listadas no Anexo II do C-207: Lei nº 13.869/2019 (abuso de autoridade), Lei nº 11.343/2006 (drogas), Lei nº 9.296/1996 (interceptação telefônica), Lei nº 12.850/2013 (organizações criminosas), Lei nº 9.807/1999 (proteção a testemunhas e colaboração), Lei nº 9.455/1997 (tortura), Lei nº 10.826/2003 (armas/SINARM), Lei nº 8.069/1990 (ECA), Lei nº 7.716/1989 (crimes de racismo), Lei nº 9.613/1998 (lavagem de dinheiro) e Lei nº 11.340/2006 (violência doméstica e familiar). Para itens atuais, enquadrar alterações legislativas no tempo e consultar fonte oficial vigente.",
+          "topics": [
+            {
+              "name": "Lei de Drogas, interceptação telefônica e organizações criminosas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Proteção a testemunhas e colaboração, tortura, armas e SINARM",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "ECA, crimes de racismo, lavagem de dinheiro e violência doméstica e familiar",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "escrivao",
+      "label": "Escrivão",
+      "notice": "C-207/2020",
+      "source_id": "pcpa-c207-edital",
+      "total_questions": 60,
+      "total_points": 10,
+      "question_format": {
+        "type": "multipla_escolha",
+        "alternatives": 5,
+        "correct_answers": 1
+      },
+      "discursive_note": "O C-207 também previa uma questão discursiva de conhecimentos específicos. Esta matriz cobre somente a prova objetiva.",
+      "subjects": [
+        {
+          "name": "Língua Portuguesa",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Compreensão e interpretação; tipos e gêneros; ortografia e coesão; morfossintaxe, classes de palavras, coordenação e subordinação; pontuação, concordância, regência, crase e colocação pronominal; significação e reescrita.",
+          "topics": [
+            {
+              "name": "Compreensão, inferência e interpretação de textos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-escrivao-paper",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Coesão, conectores e reescrita",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-investigator-2022"
+              ]
+            },
+            {
+              "name": "Morfossintaxe, pontuação, concordância, regência e crase",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Raciocínio Lógico",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Estruturas lógicas e lógica de argumentação; analogias, inferências e deduções; lógica sentencial/proposicional, proposições simples e compostas, valores lógicos, conectivos, tabela-verdade, equivalências e Leis de Morgan; princípios fundamentais de contagem e probabilidade, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Proposições, conectivos, valores lógicos, tabela-verdade, equivalências e Leis de Morgan",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Lógica de argumentação, analogias, inferências e deduções",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Princípios fundamentais de contagem, probabilidade e problemas lógicos",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-investigator-2022"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Informática",
+          "question_count": 2,
+          "points": 0.2,
+          "relative_priority": "base",
+          "scope_summary": "Arquitetura e componentes do computador; hardware, software, entrada, saída e armazenamento; princípios de sistemas operacionais; redes locais, metropolitanas e de longa distância, topologias, modelos OSI/ISO e TCP/IP e protocolos; vírus, worms, pragas virtuais e aplicativos de segurança; Internet/Intranet, navegadores, correio eletrônico, grupos, busca, pesquisa e redes sociais; acesso remoto, transferência de arquivos e multimídia; Windows 10 e GNU/Linux; edição de textos, planilhas e apresentações em Microsoft e LibreOffice; teoria da informação, dados, representação, conhecimento, segurança e inteligência, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Arquitetura, hardware/software, armazenamento, Windows 10 e GNU/Linux",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            },
+            {
+              "name": "Redes, modelos OSI/TCP-IP, protocolos, malware, segurança e acesso remoto",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            },
+            {
+              "name": "Internet, navegadores, correio, grupos/redes sociais, multimídia, ferramentas de escritório e teoria da informação",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Conhecimentos sobre o Estado do Pará",
+          "question_count": 2,
+          "points": 0.2,
+          "relative_priority": "base",
+          "scope_summary": "Realidade étnica, social, histórica, geográfica, cultural, política e econômica do Pará; questão agrária e minerária e conflitos territoriais; particularidades socioeconômicas das Regiões Integradas de Segurança Pública (RISPs), instituídas pela Resolução nº 185/2012 do CONSEP; Constituição do Estado do Pará, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Realidade étnica, histórica, geográfica, social, cultural, política e econômica do Pará",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-escrivao-paper"
+              ]
+            },
+            {
+              "name": "Questões agrária e minerária, conflitos territoriais e Regiões Integradas de Segurança Pública",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Constituição do Estado do Pará e organização político-administrativa local",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Estatística",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Estatística descritiva e análise exploratória; gráficos, diagramas e tabelas; medidas de posição, dispersão, assimetria e curtose; probabilidade, axiomas, probabilidade condicional e independência.",
+          "topics": [
+            {
+              "name": "Leitura de tabelas, gráficos e medidas descritivas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Média, mediana, dispersão, assimetria e curtose",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Probabilidade, condicional e independência",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Administrativo",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Organização administrativa (centralização, descentralização, concentração, desconcentração; administração direta/indireta; autarquias, fundações, empresas públicas e sociedades de economia mista); atos administrativos (conceito, requisitos, atributos, classificação e espécies); agentes públicos e legislação pertinente, incluindo LC nº 22/1994, Lei estadual nº 5.810/1994 e disposições constitucionais; poderes hierárquico, disciplinar, regulamentar e de polícia, uso e abuso; licitações e contratos conforme Lei nº 8.666/1993 e alterações (princípios, contratação direta, dispensa, inexigibilidade, modalidades, tipos e procedimentos); controle judicial e legislativo; responsabilidade civil do Estado (ação, omissão, requisitos, excludentes e atenuantes); Lei estadual nº 8.972/2020, sobre processo administrativo no Pará, conforme o Anexo II histórico do C-207.",
+          "topics": [
+            {
+              "name": "Organização administrativa, administração direta/indireta e entidades administrativas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Atos administrativos, agentes públicos, LC nº 22/1994 e RJU do Pará",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Poderes e abuso, licitações/contratos, controle, responsabilidade estatal e processo administrativo do Pará",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Constitucional",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Direitos e deveres individuais e coletivos, direitos à vida, liberdade, igualdade, segurança e propriedade, direitos sociais, nacionalidade, cidadania, direitos políticos, partidos políticos e garantias individuais, coletivas, sociais e políticas; Administração Pública; forma e sistema de governo e funções de chefe de Estado e de governo; defesa do Estado e das instituições democráticas, segurança pública e sua organização; bases e objetivos da ordem social, seguridade social, meio ambiente, família, criança, adolescente, pessoa idosa e povos indígenas, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Direitos e garantias individuais e coletivos, direitos sociais, nacionalidade, cidadania e direitos políticos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Administração Pública, Poder Executivo, defesa do Estado e segurança pública",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Ordem social, seguridade, meio ambiente e proteção da família, da criança, do adolescente, da pessoa idosa e dos povos indígenas",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Penal Geral",
+          "question_count": 10,
+          "points": 2,
+          "relative_priority": "alta",
+          "scope_summary": "Princípios básicos; lei penal no tempo e no espaço, tempo e lugar do crime, lei excepcional/especial/temporária, contagem de prazo e irretroatividade; conceito analítico de crime, consumação e tentativa, ilicitude e causas de exclusão, excesso punível e concurso de pessoas; crimes contra a pessoa, o patrimônio e a Administração Pública; disposições constitucionais aplicáveis ao Direito Penal, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Aplicação da lei penal e princípios",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-escrivao-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Teoria do crime, dolo/culpa, erro e excludentes",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal"
+              ]
+            },
+            {
+              "name": "Crimes contra pessoa, patrimônio e administração pública",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Processual Penal",
+          "question_count": 10,
+          "points": 2,
+          "relative_priority": "alta",
+          "scope_summary": "Disposições preliminares do CPP; inquérito policial (histórico, natureza, conceito, finalidade, características, fundamento, titularidade, grau de cognição, valor probatório, instauração, notitia criminis, delatio criminis, procedimentos investigativos, indiciamento, garantias do investigado e conclusão); ação penal, competência, prova, citações e intimações; prisão e liberdade provisória; disposições constitucionais de processo penal e Lei nº 9.099/1995, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Inquérito policial: instauração, notitia/delatio criminis, diligências, indiciamento e garantias do investigado",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-escrivao-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Ação penal, competência, prova, citações e intimações",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal"
+              ]
+            },
+            {
+              "name": "Prisão, liberdade provisória, Lei nº 9.099/1995 e disposições constitucionais processuais",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Legislação Especial",
+          "question_count": 6,
+          "points": 0.6,
+          "relative_priority": "media",
+          "scope_summary": "Somente as leis e alterações listadas no Anexo II do C-207: Lei nº 13.869/2019 (abuso de autoridade), Lei nº 11.343/2006 (drogas), Lei nº 9.296/1996 (interceptação telefônica), Lei nº 12.850/2013 (organizações criminosas), Lei nº 9.807/1999 (proteção a testemunhas e colaboração), Lei nº 9.455/1997 (tortura), Lei nº 10.826/2003 (armas/SINARM), Lei nº 8.069/1990 (ECA), Lei nº 7.716/1989 (crimes de racismo), Lei nº 9.613/1998 (lavagem de dinheiro) e Lei nº 11.340/2006 (violência doméstica e familiar). Para itens atuais, enquadrar alterações legislativas no tempo e consultar fonte oficial vigente.",
+          "topics": [
+            {
+              "name": "Lei de Drogas, interceptação telefônica e organizações criminosas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-escrivao-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Proteção a testemunhas e colaboração, tortura, armas e SINARM",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "ECA, crimes de racismo, lavagem de dinheiro e violência doméstica e familiar",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-escrivao-paper",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Arquivologia",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Arquivística: princípios e conceitos; gestão da informação e documentos; protocolo; classificação, arquivamento e ordenação; tabela de temporalidade; acondicionamento, armazenamento, preservação e conservação; tipologias, suportes, microfilmagem e automação.",
+          "topics": [
+            {
+              "name": "Princípios, conceitos, classificação e ciclo documental",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-escrivao-archivology"
+              ]
+            },
+            {
+              "name": "Protocolo, gestão documental e tabela de temporalidade",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-escrivao-archivology"
+              ]
+            },
+            {
+              "name": "Arquivamento, preservação, conservação e automação",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-escrivao-archivology"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "papiloscopista",
+      "label": "Papiloscopista",
+      "notice": "C-207/2020",
+      "source_id": "pcpa-c207-edital",
+      "total_questions": 60,
+      "total_points": 10,
+      "question_format": {
+        "type": "multipla_escolha",
+        "alternatives": 5,
+        "correct_answers": 1
+      },
+      "discursive_note": "O C-207 também previa uma questão discursiva de conhecimentos específicos. Esta matriz cobre somente a prova objetiva.",
+      "subjects": [
+        {
+          "name": "Língua Portuguesa",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Compreensão e interpretação; tipos e gêneros; ortografia e coesão; morfossintaxe, classes de palavras, coordenação e subordinação; pontuação, concordância, regência, crase e colocação pronominal; significação e reescrita.",
+          "topics": [
+            {
+              "name": "Compreensão, inferência e interpretação de textos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Coesão, conectores e reescrita",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-investigator-2022"
+              ]
+            },
+            {
+              "name": "Morfossintaxe, pontuação, concordância, regência e crase",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Raciocínio Lógico",
+          "question_count": 5,
+          "points": 0.5,
+          "relative_priority": "media",
+          "scope_summary": "Estruturas lógicas e lógica de argumentação; analogias, inferências e deduções; lógica sentencial/proposicional, proposições simples e compostas, valores lógicos, conectivos, tabela-verdade, equivalências e Leis de Morgan; princípios fundamentais de contagem e probabilidade, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Proposições, conectivos, valores lógicos, tabela-verdade, equivalências e Leis de Morgan",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-investigator-paper",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Lógica de argumentação, analogias, inferências e deduções",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Princípios fundamentais de contagem, probabilidade e problemas lógicos",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-investigator-2022"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Informática",
+          "question_count": 2,
+          "points": 0.2,
+          "relative_priority": "base",
+          "scope_summary": "Arquitetura e componentes do computador; hardware, software, entrada, saída e armazenamento; princípios de sistemas operacionais; redes locais, metropolitanas e de longa distância, topologias, modelos OSI/ISO e TCP/IP e protocolos; vírus, worms, pragas virtuais e aplicativos de segurança; Internet/Intranet, navegadores, correio eletrônico, grupos, busca, pesquisa e redes sociais; acesso remoto, transferência de arquivos e multimídia; Windows 10 e GNU/Linux; edição de textos, planilhas e apresentações em Microsoft e LibreOffice; teoria da informação, dados, representação, conhecimento, segurança e inteligência, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Arquitetura, hardware/software, armazenamento, Windows 10 e GNU/Linux",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            },
+            {
+              "name": "Redes, modelos OSI/TCP-IP, protocolos, malware, segurança e acesso remoto",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            },
+            {
+              "name": "Internet, navegadores, correio, grupos/redes sociais, multimídia, ferramentas de escritório e teoria da informação",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcsp-tec-informatics-review"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Conhecimentos sobre o Estado do Pará",
+          "question_count": 2,
+          "points": 0.2,
+          "relative_priority": "base",
+          "scope_summary": "Realidade étnica, social, histórica, geográfica, cultural, política e econômica do Pará; questão agrária e minerária e conflitos territoriais; particularidades socioeconômicas das Regiões Integradas de Segurança Pública (RISPs), instituídas pela Resolução nº 185/2012 do CONSEP; Constituição do Estado do Pará, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Realidade étnica, histórica, geográfica, social, cultural, política e econômica do Pará",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper"
+              ]
+            },
+            {
+              "name": "Questões agrária e minerária, conflitos territoriais e Regiões Integradas de Segurança Pública",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Constituição do Estado do Pará e organização político-administrativa local",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Administrativo",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Organização administrativa (centralização, descentralização, concentração, desconcentração; administração direta/indireta; autarquias, fundações, empresas públicas e sociedades de economia mista); atos administrativos (conceito, requisitos, atributos, classificação e espécies); agentes públicos e legislação pertinente, incluindo LC nº 22/1994, Lei estadual nº 5.810/1994 e disposições constitucionais; poderes hierárquico, disciplinar, regulamentar e de polícia, uso e abuso; licitações e contratos conforme Lei nº 8.666/1993 e alterações (princípios, contratação direta, dispensa, inexigibilidade, modalidades, tipos e procedimentos); controle judicial e legislativo; responsabilidade civil do Estado (ação, omissão, requisitos, excludentes e atenuantes); Lei estadual nº 8.972/2020, sobre processo administrativo no Pará, conforme o Anexo II histórico do C-207.",
+          "topics": [
+            {
+              "name": "Organização administrativa, administração direta/indireta e entidades administrativas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Atos administrativos, agentes públicos, LC nº 22/1994 e RJU do Pará",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Poderes e abuso, licitações/contratos, controle, responsabilidade estatal e processo administrativo do Pará",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Constitucional",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Direitos e deveres individuais e coletivos, direitos à vida, liberdade, igualdade, segurança e propriedade, direitos sociais, nacionalidade, cidadania, direitos políticos, partidos políticos e garantias individuais, coletivas, sociais e políticas; Administração Pública; forma e sistema de governo e funções de chefe de Estado e de governo; defesa do Estado e das instituições democráticas, segurança pública e sua organização; bases e objetivos da ordem social, seguridade social, meio ambiente, família, criança, adolescente, pessoa idosa e povos indígenas, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Direitos e garantias individuais e coletivos, direitos sociais, nacionalidade, cidadania e direitos políticos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025",
+                "pcpi-investigator-2026"
+              ]
+            },
+            {
+              "name": "Administração Pública, Poder Executivo, defesa do Estado e segurança pública",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Ordem social, seguridade, meio ambiente e proteção da família, da criança, do adolescente, da pessoa idosa e dos povos indígenas",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Penal Geral",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Princípios básicos; lei penal no tempo e no espaço, tempo e lugar do crime, lei excepcional/especial/temporária, contagem de prazo e irretroatividade; conceito analítico de crime, consumação e tentativa, ilicitude e causas de exclusão, excesso punível e concurso de pessoas; crimes contra a pessoa, o patrimônio e a Administração Pública; disposições constitucionais aplicáveis ao Direito Penal, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Aplicação da lei penal e princípios",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Teoria do crime, dolo/culpa, erro e excludentes",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal"
+              ]
+            },
+            {
+              "name": "Crimes contra pessoa, patrimônio e administração pública",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Direito Processual Penal",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Disposições preliminares do CPP; inquérito policial (histórico, natureza, conceito, finalidade, características, fundamento, titularidade, grau de cognição, valor probatório, instauração, notitia criminis, delatio criminis, procedimentos investigativos, indiciamento, garantias do investigado e conclusão); ação penal, competência, prova, citações e intimações; prisão e liberdade provisória; disposições constitucionais de processo penal e Lei nº 9.099/1995, conforme o Anexo II do C-207.",
+          "topics": [
+            {
+              "name": "Inquérito policial: instauração, notitia/delatio criminis, diligências, indiciamento e garantias do investigado",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Ação penal, competência, prova, citações e intimações",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-tec-investigator-penal"
+              ]
+            },
+            {
+              "name": "Prisão, liberdade provisória, Lei nº 9.099/1995 e disposições constitucionais processuais",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Legislação Especial",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Somente as leis e alterações listadas no Anexo II do C-207: Lei nº 13.869/2019 (abuso de autoridade), Lei nº 11.343/2006 (drogas), Lei nº 9.296/1996 (interceptação telefônica), Lei nº 12.850/2013 (organizações criminosas), Lei nº 9.807/1999 (proteção a testemunhas e colaboração), Lei nº 9.455/1997 (tortura), Lei nº 10.826/2003 (armas/SINARM), Lei nº 8.069/1990 (ECA), Lei nº 7.716/1989 (crimes de racismo), Lei nº 9.613/1998 (lavagem de dinheiro) e Lei nº 11.340/2006 (violência doméstica e familiar). Para itens atuais, enquadrar alterações legislativas no tempo e consultar fonte oficial vigente.",
+          "topics": [
+            {
+              "name": "Lei de Drogas, interceptação telefônica e organizações criminosas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper",
+                "pcpi-investigator-2026",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Proteção a testemunhas e colaboração, tortura, armas e SINARM",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "ECA, crimes de racismo, lavagem de dinheiro e violência doméstica e familiar",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper",
+                "pcpi-investigator-2026"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Medicina Legal",
+          "question_count": 6,
+          "points": 0.6,
+          "relative_priority": "media",
+          "scope_summary": "Medicina legal no contexto processual e social; traumatologia, toxicologia, sexologia, antropologia e tanatologia forenses; DNA aplicado à medicina legal; gestão do serviço pericial; psicopatologia forense; direitos humanos e medicina legal.",
+          "topics": [
+            {
+              "name": "Traumatologia, toxicologia e sexologia forenses",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper",
+                "pcmg-investigator-2025"
+              ]
+            },
+            {
+              "name": "Antropologia, tanatologia e DNA aplicado à perícia",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper"
+              ]
+            },
+            {
+              "name": "Gestão do serviço pericial, psicopatologia e direitos humanos",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Biologia",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Citologia e organização celular; bioquímica e metabolismo; embriologia e desenvolvimento humano; genética mendeliana, probabilidade genética, grupos sanguíneos e doenças genéticas, nos limites do Anexo II.",
+          "topics": [
+            {
+              "name": "Citologia, organelas, membrana, núcleo e divisão celular",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper"
+              ]
+            },
+            {
+              "name": "Bioquímica, metabolismo, enzimas e proteínas",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            },
+            {
+              "name": "Embriologia, genética mendeliana e grupos sanguíneos",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Física",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Oscilações e ondas; eletricidade, cargas, campo, potencial, corrente, resistores, capacitores e circuitos; óptica geométrica, reflexão, refração, polarização e interferência; espectroscopia molecular de absorção e emissão.",
+          "topics": [
+            {
+              "name": "Oscilações, movimento harmônico simples e ondas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper"
+              ]
+            },
+            {
+              "name": "Eletricidade, circuitos, resistores e capacitores",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper"
+              ]
+            },
+            {
+              "name": "Óptica e espectroscopia de fluorescência",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Química",
+          "question_count": 5,
+          "points": 1,
+          "relative_priority": "alta",
+          "scope_summary": "Classificação dos materiais, teoria atômico-molecular, tabela periódica, radioatividade, interações, misturas/soluções e separação; funções inorgânicas, gases e sólidos; estequiometria, termoquímica, cinética, equilíbrio, eletroquímica e química orgânica, nos limites do Anexo II.",
+          "topics": [
+            {
+              "name": "Estrutura da matéria, tabela periódica e interações químicas",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper"
+              ]
+            },
+            {
+              "name": "Soluções, separação de misturas, estequiometria e equilíbrio",
+              "relative_priority": "alta",
+              "evidence_ids": [
+                "pcpa-c207-edital",
+                "pcpa-c207-papiloscopista-paper"
+              ]
+            },
+            {
+              "name": "Eletroquímica e química orgânica dentro do programa",
+              "relative_priority": "media",
+              "evidence_ids": [
+                "pcpa-c207-edital"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -28,7 +28,15 @@ import { QuestionSourceBadge } from '@/components/study/QuestionSourceBadge';
 import { SubjectBadge } from '@/components/ui/SubjectBadge';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion, QuestionDifficulty } from '@/integrations/supabase/types';
-import { PCPA_SUBJECTS, type SubjectName } from '@/lib/constants/subjects';
+import {
+  getPriorityLabel,
+  getRoleSubject,
+  getStudyRole,
+  getSubjectsForRole,
+  isSubjectInRole,
+  type StudyRoleId,
+  type SubjectName,
+} from '@/lib/constants/subjects';
 import { recordAttempt } from '@/lib/attempts';
 import { saveDemoAttempt } from '@/lib/local-storage';
 import { answerLetter, questionAnswerDisplay, questionExplanationLabel, questionOptionDetails } from '@/lib/utils';
@@ -69,6 +77,7 @@ interface CatalogReference {
   application_date: string | null;
   application_date_evidence_url: string | null;
   caderno: string | null;
+  question_format: 'multipla_escolha' | 'certo_errado' | 'misto' | null;
   question_url: string | null;
   answer_url: string | null;
   candidate_answer_url: string | null;
@@ -128,13 +137,31 @@ function filterAIGeneratedQuestions(values: unknown[], subject: string, difficul
   return values.filter((value): value is PcpaQuestion => isAIGeneratedQuestion(value, subject, difficulty));
 }
 
+async function getFunctionErrorMessage(error: unknown): Promise<string | undefined> {
+  if (!error || typeof error !== 'object') return error instanceof Error ? error.message : undefined;
+  const context = 'context' in error ? (error as { context?: unknown }).context : undefined;
+  if (context instanceof Response) {
+    try {
+      const payload = await context.clone().json() as { error?: unknown; message?: unknown };
+      if (typeof payload?.error === 'string') return payload.error.slice(0, 240);
+      if (typeof payload?.message === 'string') return payload.message.slice(0, 240);
+    } catch {
+      // A missing function or proxy error may return non-JSON text.
+    }
+    return `A função respondeu com HTTP ${context.status}.`;
+  }
+  const message = 'message' in error ? (error as { message?: unknown }).message : undefined;
+  return typeof message === 'string' && message.trim() ? message.slice(0, 240) : undefined;
+}
+
 interface QuestionPracticeProps {
+  studyRoleId: StudyRoleId;
   initialSubject?: SubjectName;
   userId?: string;
   onAskTutor: (question: PcpaQuestion) => void;
 }
 
-export function QuestionPractice({ initialSubject, userId, onAskTutor }: QuestionPracticeProps) {
+export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTutor }: QuestionPracticeProps) {
   const [subject, setSubject] = useState<string>(initialSubject ?? '');
   const [practiceMode, setPracticeMode] = useState<PracticeMode>('real');
   const [aiQuestionFormat, setAIQuestionFormat] = useState<AIGeneratedFormat>('mista');
@@ -153,6 +180,10 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
   const queryClient = useQueryClient();
   const tracker = useWrongAnswerTracker();
   const lastInitialSubject = useRef(initialSubject);
+  const studyRole = getStudyRole(studyRoleId);
+  const roleSubjects = getSubjectsForRole(studyRoleId);
+  const roleSubjectNames = roleSubjects.map((item) => item.name);
+  const selectedSubjectProfile = getRoleSubject(studyRoleId, subject);
   const progressStages = practiceMode === 'ai' ? AI_STAGES : SEARCH_STAGES;
 
   useEffect(() => {
@@ -177,16 +208,19 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
   }, [generating, progressStages.length]);
 
   const questionsQuery = useQuery({
-    enabled: practiceMode === 'real' && isSupabaseConfigured,
-    queryKey: ['questions', subject, difficulty],
+    enabled: practiceMode === 'real' && isSupabaseConfigured && roleSubjectNames.length > 0,
+    queryKey: ['questions', studyRoleId, subject, topic, difficulty],
     queryFn: async (): Promise<PcpaQuestion[]> => {
-      if (!isSupabaseConfigured) return [];
-      let query = supabase.from('pcpa_questions').select('*').eq('source', 'concurso_real').order('created_at', { ascending: false }).limit(100);
-      if (subject) query = query.eq('subject', subject);
+      if (!isSupabaseConfigured || !roleSubjectNames.length) return [];
+      let query = supabase.from('pcpa_questions').select('*').eq('source', 'concurso_real').in('subject', roleSubjectNames).order('created_at', { ascending: false }).limit(100);
+      if (subject && isSubjectInRole(studyRoleId, subject)) query = query.eq('subject', subject);
+      if (topic !== 'geral') query = query.eq('topic', topic);
       if (difficulty) query = query.eq('difficulty', difficulty);
       const { data, error } = await query;
       if (error) throw error;
-      return filterVerifiedRealQuestions((data ?? []) as unknown as PcpaQuestion[]);
+      return filterVerifiedRealQuestions((data ?? []) as unknown as PcpaQuestion[])
+        .filter((question) => isSubjectInRole(studyRoleId, question.subject))
+        .filter((question) => topic === 'geral' || question.topic === topic);
     },
   });
   const questions = practiceMode === 'ai' ? aiQuestions : questionsQuery.data ?? [];
@@ -200,7 +234,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
     setAIQuestions([]);
     setSearchSummary(null);
     setQuestionStartedAt(Date.now());
-  }, [subject, difficulty, practiceMode]);
+  }, [subject, topic, difficulty, practiceMode]);
 
   const answerOptions = useMemo(() => question
     ? question.options.map((option, index) => ({ ...questionOptionDetails(question.type, option, index), original: option }))
@@ -224,8 +258,8 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
       toast.error('Entre na sua conta', { description: 'A geração de questões exige uma conta aprovada.' });
       return;
     }
-    if (!subject) {
-      toast.error('Escolha uma matéria', { description: 'Selecione uma das 11 matérias oficiais do PCPA.' });
+    if (!studyRole || !subject || !isSubjectInRole(studyRoleId, subject)) {
+      toast.error('Escolha uma matéria da trilha ativa', { description: `Selecione uma matéria prevista para ${studyRole?.label ?? 'o cargo'} no edital ${studyRole?.notice ?? 'selecionado'}.` });
       return;
     }
     setGenerating(true);
@@ -235,6 +269,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
       if (practiceMode === 'ai') {
         const { data, error } = await supabase.functions.invoke('pcpa-gerar-questoes-autorais', {
           body: {
+            role: studyRoleId,
             subject,
             topic: topic.trim() || 'geral',
             difficulty: difficulty || 'intermediaria',
@@ -268,7 +303,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
       }
 
       const { data, error } = await supabase.functions.invoke('pcpa-gerar-questoes', {
-        body: { subject, topic: topic.trim() || 'geral', difficulty: difficulty || 'intermediaria', count: questionCount },
+        body: { role: studyRoleId, subject, topic: topic.trim() || 'geral', difficulty: difficulty || 'intermediaria', count: questionCount },
       });
       if (error) throw error;
       const result = data as { success?: boolean; error?: string; questions?: PcpaQuestion[]; search_summary?: SearchSummary; message?: string };
@@ -276,16 +311,23 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
 
       // Nunca usamos itens de IA como se fossem questões reais, inclusive se
       // uma versão antiga da Edge Function ainda os retornasse como fallback.
-      const verifiedQuestions = filterVerifiedRealQuestions(Array.isArray(result.questions) ? result.questions : []);
+        const verifiedQuestions = filterVerifiedRealQuestions(Array.isArray(result.questions) ? result.questions : [])
+          .filter((question) => question.subject === subject && isSubjectInRole(studyRoleId, question.subject));
       const searchAvailable = typeof result.search_summary?.search_available === 'boolean'
         ? result.search_summary.search_available
         : verifiedQuestions.length > 0;
+      const safeRealMessage = verifiedQuestions.length > 0
+        ? `${verifiedQuestions.length} questão(ões) reais com proveniência oficial e permissão verificadas. Itens de IA não são usados neste modo.`
+        : searchAvailable
+        ? 'As fontes consultadas não comprovaram enunciado, alternativas, gabarito e permissão suficientes. Nenhuma questão de IA foi adicionada ao banco real.'
+        : 'A busca em fontes oficiais está indisponível ou não encontrou itens verificáveis. Nenhuma questão de IA foi adicionada ao banco real.';
       setSearchSummary({
         ...result.search_summary,
         mode: 'real',
         real_questions: verifiedQuestions.length,
         search_available: searchAvailable,
-        message: result.message,
+        // Ignore legacy/server messages and counts: an older deployment may claim AI fallback results.
+        message: safeRealMessage,
       });
       await queryClient.invalidateQueries({ queryKey: ['questions'] });
       setQuestionIndex(0);
@@ -298,11 +340,12 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
       } else {
         toast.info('A busca em fontes oficiais está indisponível ou sem configuração. Nenhuma questão artificial foi incluída.');
       }
-    } catch {
+    } catch (error) {
+      const diagnostic = practiceMode === 'ai' ? await getFunctionErrorMessage(error) : undefined;
       toast.error(practiceMode === 'ai' ? 'A geração autoral não pôde ser concluída' : 'A busca não pôde ser concluída', {
-        description: practiceMode === 'ai'
-          ? 'Tente novamente. Questões autorais não serão misturadas ao banco real nem salvas como oficiais.'
-          : 'Tente novamente em instantes. Nenhuma questão criada por IA será usada como substituta.',
+        description: diagnostic || (practiceMode === 'ai'
+          ? 'Tente novamente. Se o problema persistir, confirme se a Edge Function foi publicada e se o acesso está aprovado.'
+          : 'Tente novamente em instantes. Nenhuma questão criada por IA será usada como substituta.'),
       });
     } finally {
       setGenerating(false);
@@ -319,17 +362,17 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
     let attemptId: string | null = null;
     let isCorrect = answerLetter(selectedAnswer) === answerLetter(question.answer);
     try {
-      const recorded = await recordAttempt(question, selectedAnswer, (Date.now() - questionStartedAt) / 1000);
+      const recorded = await recordAttempt(question, selectedAnswer, (Date.now() - questionStartedAt) / 1000, studyRoleId);
       attemptId = recorded.id;
       isCorrect = recorded.isCorrect;
     } catch {
-      const local = saveDemoAttempt(question, selectedAnswer, (Date.now() - questionStartedAt) / 1000);
+      const local = saveDemoAttempt(question, selectedAnswer, (Date.now() - questionStartedAt) / 1000, studyRoleId);
       attemptId = local.id;
       isCorrect = local.is_correct;
       toast.warning('Resposta registrada neste dispositivo', { description: 'A sincronização do seu progresso está temporariamente indisponível.' });
     }
     try {
-      if (!isCorrect) await tracker.mutateAsync({ question, attemptId, wrongAnswer: answerLetter(selectedAnswer), isCorrect: false });
+      if (!isCorrect) await tracker.mutateAsync({ question, attemptId, wrongAnswer: answerLetter(selectedAnswer), isCorrect: false, studyRoleId });
     } catch {
       // A tentativa permanece registrada mesmo se a sincronização do caderno falhar.
     } finally {
@@ -353,20 +396,20 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
   return (
     <div className="animate-float-in mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-mint"><Target className="h-3.5 w-3.5" /> Prática direcionada</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{practiceMode === 'ai' ? 'Prática autoral por IA' : 'Banco de questões'}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">{practiceMode === 'ai' ? 'Itens novos para estudo, identificados como gerados por IA; não são questões reais e não entram no banco oficial.' : 'Pratique por matéria, entenda cada alternativa e transforme seus erros em revisão inteligente.'}</p></div>
+        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-mint"><Target className="h-3.5 w-3.5" /> Prática direcionada</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{practiceMode === 'ai' ? 'Prática autoral por IA' : 'Banco de questões'}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">{practiceMode === 'ai' ? 'Itens novos para estudo, identificados como gerados por IA; não são questões reais e não entram no banco oficial.' : 'Pratique por matéria, entenda cada alternativa e transforme seus erros em revisão inteligente.'}</p><p className="mt-2 text-[11px] font-medium text-cyan-200/80">{studyRole?.label} · Edital {studyRole?.notice} · {roleSubjects.length} matérias separadas para esta trilha</p></div>
         <div className="flex items-center gap-2 rounded-xl border border-line bg-white/[0.025] px-3 py-2 text-xs text-slate-400"><span className={`h-2 w-2 rounded-full ${!isSupabaseConfigured ? 'bg-amber-300' : practiceMode === 'ai' ? 'bg-violet-300' : 'bg-mint'}`} />{!isSupabaseConfigured ? 'Supabase desconectado' : practiceMode === 'ai' ? 'Modo IA separado — não são questões reais' : 'Oficiais com licença verificada'}</div>
       </div>
 
       <Card>
         <div className="flex items-start gap-3 border-b border-white/[0.055] p-5 md:px-6">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cyan-400/10 text-cyan-300"><Search className="h-4 w-4" /></span>
-          <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold text-slate-100">Monte sua sessão</h2><p className="mt-1 text-xs text-slate-500">{practiceMode === 'real' ? 'Consultamos primeiro o acervo local versionado; a busca web só preenche lacunas. Texto integral só entra com permissão explícita e origem/gabarito verificáveis.' : 'A função envia somente matéria e tópico geral, sem texto de prova, e instrui a IA a criar itens originais sem adaptar questões específicas. Eles são identificados como não reais e não entram no banco oficial.'}</p></div>
+          <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold text-slate-100">Monte sua sessão</h2><p className="mt-1 text-xs text-slate-500">{practiceMode === 'real' ? 'Consultamos primeiro o acervo local versionado; a busca web só preenche lacunas. Texto integral só entra com permissão explícita e origem/gabarito verificáveis.' : 'A função envia cargo ativo, matéria e tópico do edital, sem texto de questão real, e instrui a IA a criar itens originais sem copiar ou adaptar questões específicas. Eles são identificados como não reais e não entram no banco oficial.'}</p></div>
           <Badge variant="secondary" className="hidden gap-1.5 sm:inline-flex"><ShieldCheck className={`h-3 w-3 ${practiceMode === 'ai' ? 'text-violet-200' : 'text-emerald-200'}`} />{practiceMode === 'ai' ? 'Prática autoral separada' : 'Acervo + fontes oficiais'}</Badge>
         </div>
         <CardContent className="grid gap-3 pt-5 sm:grid-cols-2 xl:grid-cols-3 xl:items-end">
-          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Matéria</span><select className="field-select" value={subject} disabled={generating} onChange={(event) => setSubject(event.target.value)}><option value="">Todas as matérias</option>{PCPA_SUBJECTS.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}</select></label>
+          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Matéria — {studyRole?.label}</span><select className="field-select" value={subject} disabled={generating} onChange={(event) => { setSubject(event.target.value); setTopic('geral'); }}><option value="">Todas as matérias desta trilha</option>{roleSubjects.map((item) => { const profile = getRoleSubject(studyRoleId, item.name); const share = studyRole && profile ? Math.round(profile.points / studyRole.total_points * 100) : 0; return <option key={item.name} value={item.name}>{item.name} · {profile ? getPriorityLabel(profile.relative_priority) : ''} · {share}%</option>; })}</select></label>
           <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Modo</span><select className="field-select" value={practiceMode} disabled={generating} onChange={(event) => { setPracticeMode(event.target.value as PracticeMode); setSearchSummary(null); setQuestionIndex(0); setHasAnswered(false); setSelectedAnswer(''); }}><option value="real">Questões reais verificadas</option><option value="ai">Prática autoral com IA — não real</option></select></label>
-          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Tópico geral</span><input className="field-input" value={topic} disabled={generating} onChange={(event) => { setTopic(event.target.value); clearAIGeneratedSession(); }} placeholder="Ex.: segurança pública" /></label>
+          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Tópico do edital</span><select className="field-select" value={topic} disabled={generating || !subject} onChange={(event) => { setTopic(event.target.value); clearAIGeneratedSession(); }}><option value="geral">Programa completo da matéria</option>{selectedSubjectProfile?.topics.map((item) => <option key={item.name} value={item.name}>{item.name} · prioridade {getPriorityLabel(item.relative_priority).toLowerCase()}</option>)}</select></label>
           <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Dificuldade</span><select className="field-select" value={difficulty} disabled={generating} onChange={(event) => setDifficulty(event.target.value)}><option value="">Todas</option>{DIFFICULTIES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
           {practiceMode === 'ai' && <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Formato dos itens</span><select className="field-select" value={aiQuestionFormat} disabled={generating} onChange={(event) => { setAIQuestionFormat(event.target.value as AIGeneratedFormat); clearAIGeneratedSession(); }}><option value="mista">Misto</option><option value="multipla_escolha">Múltipla escolha</option><option value="certo_errado">Certo ou Errado</option></select></label>}
           <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Questões</span><select className="field-select" value={questionCount} disabled={generating} onChange={(event) => { setQuestionCount(Number(event.target.value)); clearAIGeneratedSession(); }}><option value={5}>5</option><option value={10}>10</option><option value={15}>15</option><option value={20}>20</option></select></label>
@@ -374,6 +417,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
           {!isSupabaseConfigured && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-3">Conecte o Supabase para usar a busca oficial ou a prática autoral protegida.</p>}
           {isSupabaseConfigured && !userId && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-3">Entre com uma conta aprovada para consultar o acervo ou gerar prática autoral. A geração por IA não salva itens no banco oficial.</p>}
         </CardContent>
+        {selectedSubjectProfile && <div className="border-t border-white/[0.05] px-5 py-3 md:px-6"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><span className="font-semibold text-cyan-200">Prioridade {getPriorityLabel(selectedSubjectProfile.relative_priority)}</span><span className="text-slate-500">{selectedSubjectProfile.question_count} questões · {selectedSubjectProfile.points} pontos no edital</span><span className="text-slate-500">Tópicos ordenados como orientação relativa, não previsão</span></div><p className="mt-2 text-xs leading-5 text-slate-400">Escopo do edital: {selectedSubjectProfile.scope_summary}</p></div>}
       </Card>
 
       {generating && <div role="status" aria-live="polite" aria-atomic="true" className="animate-float-in overflow-hidden rounded-2xl border border-cyan-300/15 bg-gradient-to-r from-cyan-300/[0.06] via-emerald-300/[0.035] to-cyan-300/[0.06] p-4 shadow-[0_12px_50px_rgba(34,211,238,0.045)] sm:p-5">
@@ -381,7 +425,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
           <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan-200/15 bg-cyan-300/[0.08] text-cyan-200"><span className="absolute inset-0 rounded-xl bg-cyan-300/10 animate-pulse" /><LoaderCircle className="relative h-5 w-5 animate-spin" /></span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-cyan-100">{progressStages[searchStageIndex]}</p>
-            <p className="mt-1 text-xs leading-5 text-slate-400">{practiceMode === 'ai' ? 'A função envia apenas a matéria e o tópico geral, sem textos de prova, e instrui a IA a criar itens originais. Eles ficam neste modo separado e não são salvos no banco oficial.' : 'Primeiro conferimos o acervo versionado. Só pesquisamos a web se faltarem itens; texto não licenciado fica apenas como metadado e link oficial.'}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-400">{practiceMode === 'ai' ? 'A função envia cargo, matéria e tópico do edital, sem textos de prova, e instrui a IA a criar itens originais. Eles ficam neste modo separado e não são salvos no banco oficial.' : 'Primeiro conferimos o acervo versionado. Só pesquisamos a web se faltarem itens; texto não licenciado fica apenas como metadado e link oficial.'}</p>
           </div>
           <span className="hidden items-end gap-1 pt-2 sm:flex" aria-hidden="true"><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200 [animation-delay:-.3s]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200 [animation-delay:-.15s]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200" /></span>
         </div>
@@ -403,7 +447,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
           <div className="grid gap-2 border-t border-white/[0.05] p-3 md:grid-cols-2">
             {searchSummary.catalog_references?.map((reference) => <article key={reference.id} className="rounded-xl border border-white/[0.05] bg-slate-950/30 p-3">
               <p className="text-xs font-semibold text-slate-200">{reference.police_civil} · {reference.application_year ? `prova ${reference.application_year}` : reference.notice_year ? `edital ${reference.notice_year}` : 'ano não confirmado'}</p>
-              <p className="mt-1 text-[11px] leading-5 text-slate-400">{reference.contest}{reference.cargo ? ` · ${reference.cargo}` : ''}{reference.bank ? ` · ${reference.bank}` : ''}</p>
+              <p className="mt-1 text-[11px] leading-5 text-slate-400">{reference.contest}{reference.cargo ? ` · ${reference.cargo}` : ''}{reference.bank ? ` · ${reference.bank}` : ''}{reference.question_format ? ` · Formato: ${reference.question_format === 'multipla_escolha' ? 'múltipla escolha' : reference.question_format === 'certo_errado' ? 'certo/errado' : 'misto'}` : ''}</p>
               <p className="mt-2 text-[10px] leading-4 text-slate-500">{reference.reproduction_permission === 'explicit' ? `Permissão expressa: ${reference.license_terms}` : 'Somente metadados e links oficiais; o texto integral não foi copiado.'}</p>
               <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
                 {reference.question_url && <a href={reference.question_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-300 hover:underline">Prova/caderno <ExternalLink className="h-3 w-3" /></a>}

@@ -22,19 +22,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { isSupabaseConfigured } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { PCPA_SUBJECTS, type SubjectName } from '@/lib/constants/subjects';
+import { getRoleSubject, getStudyRole, getSubjectsForRole, getPriorityLabel, type StudyRoleId, type SubjectName } from '@/lib/constants/subjects';
 import { useStudyStats } from '@/hooks/useStudyStats';
 import { cn, formatDate } from '@/lib/utils';
 import type { AppView } from '@/components/layout/Sidebar';
 
 interface DashboardOverviewProps {
+  studyRoleId: StudyRoleId;
   userId?: string;
   onNavigate: (view: AppView) => void;
   onPractice: (subject?: SubjectName) => void;
 }
 
-export function DashboardOverview({ userId, onNavigate, onPractice }: DashboardOverviewProps) {
-  const { data, isLoading } = useStudyStats(userId);
+export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice }: DashboardOverviewProps) {
+  const { data, isLoading } = useStudyStats(userId, studyRoleId);
+  const studyRole = getStudyRole(studyRoleId);
+  const roleSubjects = getSubjectsForRole(studyRoleId);
   const attempts = data?.attempts ?? [];
   const total = attempts.length;
   const correct = attempts.filter((attempt) => attempt.is_correct).length;
@@ -51,10 +54,15 @@ export function DashboardOverview({ userId, onNavigate, onPractice }: DashboardO
     return { day, value: dayAttempts.length, correct: dayAttempts.filter((attempt) => attempt.is_correct).length };
   });
   const maxWeekValue = Math.max(3, ...weekBuckets.map((item) => item.value));
-  const subjectStats = PCPA_SUBJECTS.map((subject) => {
+  const subjectStats = roleSubjects.map((subject) => {
     const subjectAttempts = attempts.filter((attempt) => attempt.question?.subject === subject.name);
     const subjectCorrect = subjectAttempts.filter((attempt) => attempt.is_correct).length;
-    return { ...subject, count: subjectAttempts.length, accuracy: subjectAttempts.length ? Math.round(subjectCorrect / subjectAttempts.length * 100) : 0 };
+    return {
+      ...subject,
+      profile: getRoleSubject(studyRoleId, subject.name),
+      count: subjectAttempts.length,
+      accuracy: subjectAttempts.length ? Math.round(subjectCorrect / subjectAttempts.length * 100) : 0,
+    };
   }).sort((a, b) => a.count - b.count);
   const todayLabel = formatDate(today, { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -64,7 +72,7 @@ export function DashboardOverview({ userId, onNavigate, onPractice }: DashboardO
         <div className="absolute -right-12 -top-24 -z-10 h-72 w-72 rounded-full bg-cyan-400/[0.09] blur-xl md:blur-3xl" />
         <div className="absolute bottom-[-120px] right-[26%] -z-10 h-60 w-60 rounded-full bg-mint/[0.07] blur-xl md:blur-3xl" />
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-mint/[0.08] px-3 py-1 text-[10px] font-bold uppercase tracking-[.16em] text-mint"><Sparkles className="h-3 w-3" /> Jornada PCPA</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/20 bg-mint/[0.08] px-3 py-1 text-[10px] font-bold uppercase tracking-[.12em] text-mint"><Sparkles className="h-3 w-3" /> {studyRole?.label} · {studyRole?.notice}</span>
           <span className="text-xs capitalize text-slate-500">{todayLabel}</span>
         </div>
         <div className="mt-5 grid items-end gap-7 lg:grid-cols-[1fr_auto]">
@@ -79,7 +87,7 @@ export function DashboardOverview({ userId, onNavigate, onPractice }: DashboardO
           </div>
           <div className="hidden min-w-48 rounded-2xl border border-white/[0.08] bg-[#07131f]/55 p-4 lg:block">
             <div className="flex items-center justify-between text-xs text-slate-400"><span>Matérias oficiais</span><Layers3 className="h-4 w-4 text-cyan-300" /></div>
-            <p className="mt-2 text-4xl font-semibold tracking-tight text-white">11<span className="ml-1 text-lg font-medium text-slate-500">/ 11</span></p>
+            <p className="mt-2 text-4xl font-semibold tracking-tight text-white">{roleSubjects.length}<span className="ml-1 text-lg font-medium text-slate-500">/ {roleSubjects.length}</span></p>
             <div className="mt-3 h-1.5 rounded-full bg-white/10"><div className="h-full w-full rounded-full bg-gradient-to-r from-mint to-cyan-300" /></div>
             <p className="mt-2 text-[11px] text-slate-500">Conteúdo alinhado ao edital</p>
           </div>
@@ -135,15 +143,15 @@ export function DashboardOverview({ userId, onNavigate, onPractice }: DashboardO
       <section className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
         <Card>
           <div className="flex items-start justify-between gap-4 p-5 pb-4 md:px-6 md:pt-6">
-            <div><p className="text-sm font-semibold text-slate-100">Matérias do concurso</p><p className="mt-1 text-xs text-slate-500">Acompanhe seus pontos fortes e escolha o próximo foco</p></div>
-            <span className="hidden rounded-full border border-line px-2.5 py-1 text-[10px] text-slate-500 sm:inline-flex">11 matérias</span>
+            <div><p className="text-sm font-semibold text-slate-100">Matérias de {studyRole?.label}</p><p className="mt-1 text-xs text-slate-500">Prioridade relativa pelo edital · acompanhe os pontos fortes e escolha o próximo foco</p></div>
+            <span className="hidden rounded-full border border-line px-2.5 py-1 text-[10px] text-slate-500 sm:inline-flex">{roleSubjects.length} matérias · {studyRole?.notice}</span>
           </div>
           <div className="grid gap-2 px-4 pb-4 sm:grid-cols-2 md:px-5 md:pb-5">
             {subjectStats.map((subject) => {
               const Icon = subject.icon;
               return <button key={subject.name} onClick={() => onPractice(subject.name)} className="group flex min-w-0 items-center gap-3 rounded-xl border border-white/[0.055] bg-white/[0.018] p-3 text-left transition-all hover:border-white/[0.12] hover:bg-white/[0.04]">
                 <span className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-xl', subject.bgColor, subject.color)}><Icon className="h-4 w-4" /></span>
-                <span className="min-w-0 flex-1"><span className="block text-xs font-medium leading-4 text-slate-200">{subject.name}</span><span className="mt-1 block text-[10px] text-slate-500">{subject.count ? `${subject.count} ${subject.count === 1 ? 'questão' : 'questões'} · ${subject.accuracy}% de acerto` : 'Comece a praticar'}</span></span>
+                <span className="min-w-0 flex-1"><span className="block text-xs font-medium leading-4 text-slate-200">{subject.name}</span><span className="mt-1 block text-[10px] text-slate-500">{subject.profile ? `Prioridade ${getPriorityLabel(subject.profile.relative_priority)} · ${subject.profile.question_count} questões / ${subject.profile.points} pts · ` : ''}{subject.count ? `${subject.count} tentativas · ${subject.accuracy}% de acerto` : 'Comece a praticar'}</span></span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-slate-600 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-300" />
               </button>;
             })}

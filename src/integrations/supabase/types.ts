@@ -52,6 +52,7 @@ export interface PcpaQuestion {
 export interface PcpaAttempt {
   id: string;
   user_id: string;
+  study_role_id?: 'delegado' | 'investigador' | 'escrivao' | 'papiloscopista' | null;
   question_id: string;
   selected_answer: string;
   is_correct: boolean;
@@ -62,6 +63,7 @@ export interface PcpaAttempt {
 
 export interface WrongAnswerRecord {
   id: string;
+  study_role_id?: 'delegado' | 'investigador' | 'escrivao' | 'papiloscopista' | null;
   question_id: string;
   wrong_answer: string;
   attempted_at: string;

@@ -25,9 +25,29 @@ import { Button } from '@/components/ui/button';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
 import { useStudyStats } from '@/hooks/useStudyStats';
-import { isOfficialSubject, type SubjectName } from '@/lib/constants/subjects';
+import {
+  PCPA_STUDY_MATRIX,
+  STUDY_ROLES,
+  isOfficialSubject,
+  isStudyRoleId,
+  isSubjectInRole,
+  type StudyRoleId,
+  type SubjectName,
+} from '@/lib/constants/subjects';
 
 type AccessStatus = 'signed-out' | 'checking' | 'pending' | 'approved' | 'error';
+
+const STUDY_ROLE_STORAGE_KEY = 'pcpa-study-role.v1';
+
+function readSavedStudyRole(): StudyRoleId | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = window.localStorage.getItem(STUDY_ROLE_STORAGE_KEY);
+    return isStudyRoleId(saved) ? saved : null;
+  } catch {
+    return null;
+  }
+}
 
 const VIEW_TITLES: Record<AppView, string> = {
   overview: 'Visão geral',
@@ -44,6 +64,12 @@ function PageLoading() {
   return <div className="grid min-h-72 place-items-center"><div className="flex items-center gap-3 text-sm text-slate-400"><span className="h-4 w-4 animate-spin rounded-full border-2 border-mint/20 border-t-mint" />Preparando sua área de estudo…</div></div>;
 }
 
+function StudyRoleRequired() {
+  return <section className="glass-card mx-auto grid min-h-64 max-w-2xl place-items-center rounded-2xl p-8 text-center">
+    <div><span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-cyan-200/10 bg-cyan-200/[0.05] text-cyan-100"><ShieldCheck className="h-5 w-5" /></span><h2 className="mt-4 text-lg font-semibold text-white">Escolha sua trilha para continuar</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">Selecione o cargo e edital de referência acima. Assim, matérias, questões, simulados e seu histórico permanecem separados entre Delegado, Investigador, Escrivão e Papiloscopista.</p></div>
+  </section>;
+}
+
 function App() {
   const [activeView, setActiveView] = useState<AppView>('overview');
   const [session, setSession] = useState<Session | null>(null);
@@ -52,8 +78,18 @@ function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [questionContext, setQuestionContext] = useState<PcpaQuestion | null>(null);
   const [practiceSubject, setPracticeSubject] = useState<SubjectName | undefined>();
+  const [studyRoleId, setStudyRoleId] = useState<StudyRoleId | null>(readSavedStudyRole);
   const [signingOut, setSigningOut] = useState(false);
-  const { data: stats } = useStudyStats(accessStatus === 'approved' ? session?.user.id : undefined);
+  const { data: stats } = useStudyStats(accessStatus === 'approved' ? session?.user.id : undefined, studyRoleId ?? undefined);
+
+  useEffect(() => {
+    try {
+      if (studyRoleId) window.localStorage.setItem(STUDY_ROLE_STORAGE_KEY, studyRoleId);
+      else window.localStorage.removeItem(STUDY_ROLE_STORAGE_KEY);
+    } catch {
+      // The study flow remains usable if browser storage is blocked.
+    }
+  }, [studyRoleId]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -117,8 +153,18 @@ function App() {
     setActiveView(view);
   }
 
+  function selectStudyRole(value: string) {
+    const nextRole = isStudyRoleId(value) ? value : null;
+    setStudyRoleId(nextRole);
+    setPracticeSubject(undefined);
+    setQuestionContext(null);
+  }
+
   function openPractice(subject?: string) {
-    setPracticeSubject(subject && isOfficialSubject(subject) ? subject : undefined);
+    const subjectIsAllowed = Boolean(
+      subject && studyRoleId && isOfficialSubject(subject) && isSubjectInRole(studyRoleId, subject),
+    );
+    setPracticeSubject(subjectIsAllowed ? subject as SubjectName : undefined);
     setActiveView('practice');
   }
 
@@ -194,6 +240,10 @@ function App() {
           </header>
           <main className="mx-auto max-w-[1500px] px-4 pb-10 pt-5 sm:px-6 md:px-7 md:pt-7 lg:px-9">
             <div className="mb-5 flex items-center justify-between md:hidden"><div><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-slate-500">{pageTitle}</p><p className="mt-1 text-[10px] text-slate-600">Sua preparação para a PCPA</p></div>{isSupabaseConfigured && <MobileUserControl session={session} onSignIn={() => setAuthOpen(true)} onSignOut={() => void signOut()} />}</div>
+            {!hasUnapprovedSession && <section className="mb-5 flex flex-col gap-3 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.025] p-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-4" aria-label="Trilha de estudo ativa">
+              <div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-cyan-200/80">Trilha de estudo</p><p className="mt-1 text-xs text-slate-400">{studyRoleId ? 'Matérias e pesos filtrados pelo edital histórico deste cargo. Prioridades são relativas, não previsões.' : 'Escolha um cargo para filtrar matérias e prioridades sem misturar as trilhas.'}</p>{studyRoleId && STUDY_ROLES.find((role) => role.id === studyRoleId)?.notice === 'C-207/2020' && <p className="mt-1.5 max-w-4xl text-[10px] leading-4 text-emerald-200/70">Fonte conferida: {PCPA_STUDY_MATRIX.methodology.source_validation_note}</p>}</div>
+              <label className="w-full sm:w-72"><span className="sr-only">Cargo e edital de referência</span><select className="field-select" value={studyRoleId ?? ''} onChange={(event) => selectStudyRole(event.target.value)} aria-label="Cargo e edital de referência"><option value="">Escolha um cargo</option>{STUDY_ROLES.map((role) => <option key={role.id} value={role.id}>{role.label} — {role.notice}</option>)}</select></label>
+            </section>}
             {hasUnapprovedSession ? (
               <AccessPending
                 state={accessStatus === 'pending' ? 'pending' : accessStatus === 'error' ? 'error' : 'checking'}
@@ -205,14 +255,15 @@ function App() {
               <>
                 {!isSupabaseConfigured && activeView !== 'overview' && <div className="mb-5 flex items-center gap-2 rounded-xl border border-amber-300/10 bg-amber-300/[0.025] px-3 py-2.5 text-[10px] leading-4 text-amber-100/70"><Cloud className="h-3.5 w-3.5 shrink-0 text-amber-200" />Modo demonstração: seu progresso fica salvo neste dispositivo. A busca de novas questões e a sincronização entre aparelhos podem estar limitadas.</div>}
                 <Suspense fallback={<PageLoading />}>
-                  {activeView === 'overview' && <DashboardOverview userId={session?.user.id} onNavigate={navigate} onPractice={openPractice} />}
-                  {activeView === 'practice' && <QuestionPractice key={practiceSubject ?? 'all'} initialSubject={practiceSubject} userId={session?.user.id} onAskTutor={askTutor} />}
-                  {activeView === 'simulados' && <SimuladoSession userId={session?.user.id} />}
-                  {activeView === 'flashcards' && <FlashcardSession userId={session?.user.id} />}
-                  {activeView === 'wrong' && <WrongAnswersNotebook userId={session?.user.id} onPractice={openPractice} />}
-                  {activeView === 'tutor' && <TutorChat questionContext={questionContext} userId={session?.user.id} onClearContext={() => setQuestionContext(null)} />}
-                  {activeView === 'stats' && <StatsView userId={session?.user.id} onNavigate={navigate} />}
-                  {activeView === 'admin' && isAdmin && <AdminAccessPanel />}
+                  {activeView === 'admin' && isAdmin ? <AdminAccessPanel /> : !studyRoleId ? <StudyRoleRequired /> : <>
+                    {activeView === 'overview' && <DashboardOverview studyRoleId={studyRoleId} userId={session?.user.id} onNavigate={navigate} onPractice={openPractice} />}
+                    {activeView === 'practice' && <QuestionPractice key={`${studyRoleId}:${practiceSubject ?? 'all'}`} studyRoleId={studyRoleId} initialSubject={practiceSubject} userId={session?.user.id} onAskTutor={askTutor} />}
+                    {activeView === 'simulados' && <SimuladoSession key={studyRoleId} studyRoleId={studyRoleId} userId={session?.user.id} />}
+                    {activeView === 'flashcards' && <FlashcardSession key={studyRoleId} studyRoleId={studyRoleId} userId={session?.user.id} />}
+                    {activeView === 'wrong' && <WrongAnswersNotebook key={studyRoleId} studyRoleId={studyRoleId} userId={session?.user.id} onPractice={openPractice} />}
+                    {activeView === 'tutor' && <TutorChat key={studyRoleId} studyRoleId={studyRoleId} questionContext={questionContext} userId={session?.user.id} onClearContext={() => setQuestionContext(null)} />}
+                    {activeView === 'stats' && <StatsView key={studyRoleId} studyRoleId={studyRoleId} userId={session?.user.id} onNavigate={navigate} />}
+                  </>}
                 </Suspense>
                 <footer className="mt-9 flex items-center gap-1.5 border-t border-white/[0.05] pt-4 text-[9px] text-slate-600"><ShieldCheck className="h-3 w-3 shrink-0 text-mint/50" />Tutor PCPA · Material de apoio para estudos. Consulte o edital e as fontes oficiais.</footer>
               </>

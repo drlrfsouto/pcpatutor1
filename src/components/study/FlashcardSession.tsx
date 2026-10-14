@@ -22,10 +22,11 @@ import { SubjectBadge } from '@/components/ui/SubjectBadge';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
 import { filterVerifiedRealQuestions } from '@/lib/question-provenance';
+import { getSubjectsForRole, getStudyRole, isSubjectInRole, type StudyRoleId } from '@/lib/constants/subjects';
 import { getFlashcardProgress, saveFlashcardProgress, type FlashcardProgress } from '@/lib/local-storage';
 import { answerLetter, questionAnswerDisplay, questionExplanationLabel, questionOptionDetails } from '@/lib/utils';
 
-interface FlashcardSessionProps { userId?: string }
+interface FlashcardSessionProps { studyRoleId: StudyRoleId; userId?: string }
 type Grade = 'again' | 'hard' | 'good' | 'easy';
 
 const GRADE_CONFIG: { grade: Grade; label: string; hint: string; quality: number; className: string }[] = [
@@ -35,29 +36,34 @@ const GRADE_CONFIG: { grade: Grade; label: string; hint: string; quality: number
   { grade: 'easy', label: 'Fácil', hint: 'Aumentar intervalo', quality: 5, className: 'border-mint/20 bg-mint/[0.05] text-mint hover:bg-mint/10' },
 ];
 
-export function FlashcardSession({ userId }: FlashcardSessionProps) {
+export function FlashcardSession({ studyRoleId, userId }: FlashcardSessionProps) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [reviewed, setReviewed] = useState(0);
   const [completed, setCompleted] = useState(false);
   const queryClient = useQueryClient();
+  const studyRole = getStudyRole(studyRoleId);
+  const roleSubjectNames = getSubjectsForRole(studyRoleId).map((subject) => subject.name);
   const query = useQuery({
-    queryKey: ['flashcard-questions'],
+    queryKey: ['flashcard-questions', studyRoleId],
+    enabled: roleSubjectNames.length > 0,
     queryFn: async (): Promise<PcpaQuestion[]> => {
-      if (!isSupabaseConfigured) return [];
-      const { data, error } = await supabase.from('pcpa_questions').select('*').eq('source', 'concurso_real').order('created_at', { ascending: false }).limit(100);
+      if (!isSupabaseConfigured || !roleSubjectNames.length) return [];
+      const { data, error } = await supabase.from('pcpa_questions').select('*').eq('source', 'concurso_real').in('subject', roleSubjectNames).order('created_at', { ascending: false }).limit(100);
       if (error) throw error;
-      return filterVerifiedRealQuestions((data ?? []) as unknown as PcpaQuestion[]);
+      return filterVerifiedRealQuestions((data ?? []) as unknown as PcpaQuestion[])
+        .filter((question) => isSubjectInRole(studyRoleId, question.subject));
     },
   });
   const stateQuery = useQuery({
-    queryKey: ['flashcard-states', userId ?? 'local'],
+    queryKey: ['flashcard-states', userId ?? 'local', studyRoleId],
     queryFn: async (): Promise<Record<string, FlashcardProgress>> => {
-      if (!isSupabaseConfigured || !userId) return getFlashcardProgress();
-      const { data, error } = await supabase.from('pcpa_flashcard_state').select('question_id,repetitions,ease_factor,interval_days,next_review_date').eq('user_id', userId);
+      if (!isSupabaseConfigured || !userId) return getFlashcardProgress(studyRoleId);
+      const { data, error } = await supabase.from('pcpa_flashcard_state').select('question_id,study_role_id,repetitions,ease_factor,interval_days,next_review_date').eq('user_id', userId).eq('study_role_id', studyRoleId);
       if (error) throw error;
       return Object.fromEntries((data ?? []).map((row) => [row.question_id, {
         question_id: row.question_id,
+        study_role_id: studyRoleId,
         repetitions: row.repetitions,
         ease_factor: row.ease_factor,
         interval_days: row.interval_days,
@@ -67,10 +73,10 @@ export function FlashcardSession({ userId }: FlashcardSessionProps) {
   });
   const candidateQuestions = useMemo(() => {
     const questions = query.data ?? [];
-    const progressByQuestion = stateQuery.data ?? getFlashcardProgress();
+    const progressByQuestion = stateQuery.data ?? getFlashcardProgress(studyRoleId);
     const due = questions.filter((question) => !progressByQuestion[question.id] || new Date(progressByQuestion[question.id].next_review_date) <= new Date());
     return due.length ? due : questions;
-  }, [query.data, stateQuery.data]);
+  }, [query.data, stateQuery.data, studyRoleId]);
   const canInitializeDeck = !isSupabaseConfigured || !userId || stateQuery.isSuccess || stateQuery.isError;
   const [sessionDeck, setSessionDeck] = useState<PcpaQuestion[]>([]);
   useEffect(() => {
@@ -82,7 +88,7 @@ export function FlashcardSession({ userId }: FlashcardSessionProps) {
 
   async function rateCard(quality: number) {
     if (!card) return;
-    const allProgress = stateQuery.data ?? getFlashcardProgress();
+    const allProgress = stateQuery.data ?? getFlashcardProgress(studyRoleId);
     const previous = allProgress[card.id] ?? { question_id: card.id, repetitions: 0, ease_factor: 2.5, interval_days: 0, next_review_date: new Date().toISOString() };
     let repetitions = previous.repetitions;
     let intervalDays: number;
@@ -100,19 +106,20 @@ export function FlashcardSession({ userId }: FlashcardSessionProps) {
     const next = new Date();
     next.setDate(next.getDate() + intervalDays);
     const progress = { question_id: card.id, repetitions, ease_factor: easeFactor, interval_days: intervalDays, next_review_date: next.toISOString() };
-    saveFlashcardProgress(progress);
-    queryClient.setQueryData<Record<string, FlashcardProgress>>(['flashcard-states', userId ?? 'local'], (previousState) => ({ ...(previousState ?? {}), [card.id]: progress }));
+    saveFlashcardProgress(progress, studyRoleId);
+    queryClient.setQueryData<Record<string, FlashcardProgress>>(['flashcard-states', userId ?? 'local', studyRoleId], (previousState) => ({ ...(previousState ?? {}), [card.id]: progress }));
 
     if (isSupabaseConfigured && userId && /^[0-9a-f-]{36}$/i.test(card.id)) {
       const { error } = await supabase.from('pcpa_flashcard_state').upsert({
         user_id: userId,
         question_id: card.id,
+        study_role_id: studyRoleId,
         ease_factor: easeFactor,
         repetitions,
         interval_days: intervalDays,
         next_review_date: next.toISOString(),
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,question_id' });
+      }, { onConflict: 'user_id,question_id,study_role_id' });
       if (error) toast.warning('Revisão salva neste dispositivo', { description: 'A sincronização está temporariamente indisponível.' });
     }
     setReviewed((value) => value + 1);
@@ -135,7 +142,7 @@ export function FlashcardSession({ userId }: FlashcardSessionProps) {
 
   return (
     <div className="animate-float-in mx-auto max-w-4xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4"><div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-violet-300"><BrainCircuit className="h-3.5 w-3.5" /> Repetição espaçada</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Flashcards</h1><p className="mt-2 text-sm leading-6 text-slate-400">Recupere a informação da memória antes de virar o cartão. O intervalo se adapta à sua resposta.</p></div><Badge variant="secondary" className="gap-1.5"><Clock3 className="h-3.5 w-3.5 text-cyan-200" />SM-2 adaptativo</Badge></div>
+      <div className="flex flex-wrap items-end justify-between gap-4"><div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-violet-300"><BrainCircuit className="h-3.5 w-3.5" /> Repetição espaçada · {studyRole?.label} · {studyRole?.notice}</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Flashcards</h1><p className="mt-2 text-sm leading-6 text-slate-400">Recupere a informação da memória antes de virar o cartão. Este baralho usa apenas matérias do cargo ativo; o intervalo se adapta à sua resposta.</p></div><Badge variant="secondary" className="gap-1.5"><Clock3 className="h-3.5 w-3.5 text-cyan-200" />SM-2 adaptativo</Badge></div>
       <Card className="p-4 md:p-5"><div className="flex items-center justify-between text-xs text-slate-400"><span>Cartão {Math.min(index + 1, dueQuestions.length)} de {dueQuestions.length}</span><span>{reviewed} revisados nesta sessão</span></div><Progress value={Math.min(index + (completed ? 1 : 0), dueQuestions.length) / dueQuestions.length * 100} className="mt-3 h-1.5" /></Card>
 
       {completed ? <Card className="grid min-h-[430px] place-items-center overflow-hidden p-8 text-center"><div className="max-w-md"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-mint/10 text-mint"><Check className="h-7 w-7" /></span><h2 className="mt-5 text-2xl font-semibold text-white">Revisão concluída!</h2><p className="mt-2 text-sm leading-6 text-slate-400">Você revisou {reviewed} {reviewed === 1 ? 'cartão' : 'cartões'} nesta sessão. Sua constância fortalece a memória de longo prazo.</p><div className="mt-6 flex justify-center gap-3"><Button onClick={resetSession}><RotateCcw className="h-4 w-4" />Recomeçar</Button><Button variant="secondary" onClick={() => toast.success('Boa sessão de revisão!')}>Concluir</Button></div></div></Card> : <Card className="overflow-hidden">

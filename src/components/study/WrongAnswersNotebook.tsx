@@ -26,38 +26,50 @@ import { QuestionSourceBadge } from '@/components/study/QuestionSourceBadge';
 import { SubjectBadge } from '@/components/ui/SubjectBadge';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion, WrongAnswerRecord } from '@/integrations/supabase/types';
-import { SUBJECT_NAMES } from '@/lib/constants/subjects';
+import { getStudyRole, getSubjectsForRole, type StudyRoleId } from '@/lib/constants/subjects';
 import { isVerifiedRealQuestion } from '@/lib/question-provenance';
 import { getDemoWrongAnswers, removeMasteredDemoWrongAnswers, updateDemoWrongAnswer, type DemoWrongAnswer } from '@/lib/local-storage';
 import { answerLetter, questionAnswerDisplay, questionExplanationLabel, questionOptionDetails } from '@/lib/utils';
 
 interface WrongAnswersNotebookProps {
+  studyRoleId: StudyRoleId;
   userId?: string;
   onPractice?: (subject?: string) => void;
 }
 
 type NotebookRecord = WrongAnswerRecord | DemoWrongAnswer;
 
-export function WrongAnswersNotebook({ userId, onPractice }: WrongAnswersNotebookProps) {
+export function WrongAnswersNotebook({ studyRoleId, userId, onPractice }: WrongAnswersNotebookProps) {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [showOnlyUnreviewed, setShowOnlyUnreviewed] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(20);
   const queryClient = useQueryClient();
+  const studyRole = getStudyRole(studyRoleId);
+  const roleSubjects = getSubjectsForRole(studyRoleId);
+  const roleSubjectNames: string[] = roleSubjects.map((subject) => subject.name);
 
   const query = useQuery({
-    queryKey: ['wrong-answers', userId ?? 'local'],
+    queryKey: ['wrong-answers', userId ?? 'local', studyRoleId],
     queryFn: async (): Promise<NotebookRecord[]> => {
-      if (!isSupabaseConfigured || !userId) return getDemoWrongAnswers().filter((record) => isVerifiedRealQuestion(record.question));
+      if (!roleSubjectNames.length) return [];
+      if (!isSupabaseConfigured || !userId) return getDemoWrongAnswers()
+        .filter((record) => isVerifiedRealQuestion(record.question))
+        .filter((record) => roleSubjectNames.includes(record.question.subject))
+        .filter((record) => !record.study_role_id || record.study_role_id === studyRoleId);
       const { data, error } = await supabase
         .from('pcpa_wrong_answers')
         .select('*, question:pcpa_questions(*)')
         .eq('user_id', userId)
+        .or(`study_role_id.is.null,study_role_id.eq.${studyRoleId}`)
+        .in('question.subject', roleSubjectNames)
         .order('attempted_at', { ascending: false });
       if (error) throw error;
       return ((data ?? []) as unknown as (WrongAnswerRecord & { question: PcpaQuestion | null })[])
-        .filter((record) => isVerifiedRealQuestion(record.question)) as WrongAnswerRecord[];
+        .filter((record) => isVerifiedRealQuestion(record.question))
+        .filter((record) => roleSubjectNames.includes(record.question.subject))
+        .filter((record) => !record.study_role_id || record.study_role_id === studyRoleId) as WrongAnswerRecord[];
     },
   });
   const allRecords = query.data ?? [];
@@ -95,11 +107,13 @@ export function WrongAnswersNotebook({ userId, onPractice }: WrongAnswersNoteboo
 
   const removeMastered = useMutation({
     mutationFn: async () => {
+      const masteredIds = allRecords.filter((record) => record.mastered).map((record) => record.id);
+      if (!masteredIds.length) return;
       if (!isSupabaseConfigured || !userId) {
-        removeMasteredDemoWrongAnswers();
+        removeMasteredDemoWrongAnswers(roleSubjectNames, studyRoleId);
         return;
       }
-      const { error } = await supabase.from('pcpa_wrong_answers').delete().eq('user_id', userId).eq('mastered', true);
+      const { error } = await supabase.from('pcpa_wrong_answers').delete().eq('user_id', userId).in('id', masteredIds);
       if (error) throw error;
     },
     onSuccess: async () => {
@@ -126,7 +140,7 @@ export function WrongAnswersNotebook({ userId, onPractice }: WrongAnswersNoteboo
   return (
     <div className="animate-float-in mx-auto max-w-6xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-rose-300"><NotebookIcon /> Revisão inteligente</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Caderno de erros</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Cada questão errada é uma pista do que revisar. Volte a ela, entenda o raciocínio e marque quando dominar.</p></div>
+        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-rose-300"><NotebookIcon /> Revisão inteligente · {studyRole?.label} · {studyRole?.notice}</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Caderno de erros</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Cada questão errada é uma pista do que revisar. Este caderno exibe apenas matérias desta trilha; volte ao item, entenda o raciocínio e marque quando dominar.</p></div>
         {mastered > 0 && <Button variant="secondary" onClick={() => removeMastered.mutate()} disabled={removeMastered.isPending}><Trash2 className="h-4 w-4" />Limpar dominadas</Button>}
       </div>
 
@@ -152,7 +166,7 @@ export function WrongAnswersNotebook({ userId, onPractice }: WrongAnswersNoteboo
         </div>
       </div>
 
-      {showFilters && <Card className="p-4"><div className="mb-3 flex items-center justify-between"><p className="text-xs font-semibold text-slate-300">Filtrar por matéria</p><button onClick={() => { setVisibleCount(20); setSelectedSubjects([]); }} className="text-[11px] text-mint hover:underline">Limpar</button></div><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{SUBJECT_NAMES.map((subject) => <label key={subject} className="flex cursor-pointer items-start gap-2 rounded-lg border border-white/[0.05] px-2.5 py-2 text-[11px] leading-4 text-slate-400 hover:bg-white/[0.03]"><input type="checkbox" checked={selectedSubjects.includes(subject)} onChange={() => toggleSubject(subject)} className="mt-0.5 accent-emerald-300" /><span>{subject}</span></label>)}</div></Card>}
+      {showFilters && <Card className="p-4"><div className="mb-3 flex items-center justify-between"><p className="text-xs font-semibold text-slate-300">Filtrar por matéria</p><button onClick={() => { setVisibleCount(20); setSelectedSubjects([]); }} className="text-[11px] text-mint hover:underline">Limpar</button></div><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{roleSubjectNames.map((subject) => <label key={subject} className="flex cursor-pointer items-start gap-2 rounded-lg border border-white/[0.05] px-2.5 py-2 text-[11px] leading-4 text-slate-400 hover:bg-white/[0.03]"><input type="checkbox" checked={selectedSubjects.includes(subject)} onChange={() => toggleSubject(subject)} className="mt-0.5 accent-emerald-300" /><span>{subject}</span></label>)}</div></Card>}
 
       {query.isLoading ? <Card className="grid place-items-center p-12"><LoaderCircle className="h-6 w-6 animate-spin text-mint" /><span className="mt-3 text-xs text-slate-500">Carregando revisões…</span></Card> : records.length === 0 ? (
         <Card className="grid min-h-64 place-items-center p-8 text-center">

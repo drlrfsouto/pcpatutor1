@@ -1,26 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireApprovedUser } from "../_shared/auth.ts";
 import { getGeminiApiKeys } from "../_shared/gemini.ts";
+import { getRoleSubject, getStudyRole, isStudySubject, isStudyTopic, normalizeStudyRoleId, type StudyRoleId } from "../_shared/study-matrix.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-const SUBJECTS = [
-  "Língua Portuguesa",
-  "Redação",
-  "Raciocínio Lógico",
-  "Informática",
-  "Direito Administrativo",
-  "Legislação Administrativa - Regime Jurídico Único - RJU",
-  "Direito Constitucional",
-  "Direito Penal Geral",
-  "Direito Processual Penal",
-  "Legislação Especial",
-  "Estatística",
-];
 
 const LEGAL_SUBJECTS = new Set([
   "Direito Administrativo",
@@ -29,6 +16,10 @@ const LEGAL_SUBJECTS = new Set([
   "Direito Penal Geral",
   "Direito Processual Penal",
   "Legislação Especial",
+  "Direito Civil",
+  "Direito Processual Civil",
+  "Direito Ambiental",
+  "Direitos Humanos",
 ]);
 
 const RESPONSE_SCHEMA = {
@@ -89,7 +80,8 @@ function answerLetter(value: unknown) {
   return value.trim().match(/^([A-E])/i)?.[1]?.toUpperCase() ?? "";
 }
 
-function normalizeQuestion(value: unknown, request: { subject: string; topic: string; difficulty: string; format: string }) {
+function normalizeQuestion(value: unknown, request: { roleId: StudyRoleId; subject: string; topic: string; difficulty: string; format: string }) {
+  if (!isStudySubject(request.roleId, request.subject) || !isStudyTopic(request.roleId, request.subject, request.topic)) return null;
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const raw = value as Record<string, unknown>;
   const type = cleanText(raw.type, 40);
@@ -130,7 +122,7 @@ function normalizeQuestion(value: unknown, request: { subject: string; topic: st
   return {
     id: `ai-${crypto.randomUUID()}`,
     subject: request.subject,
-    topic: cleanText(raw.topic, 200) || request.topic,
+    topic: request.topic === "geral" ? "Programa completo do edital" : request.topic,
     type,
     difficulty: request.difficulty,
     prompt,
@@ -209,9 +201,14 @@ serve(async (req) => {
     if (access.status === "unavailable") return responseJson({ success: false, error: "Não foi possível confirmar a liberação da sua conta." }, 503);
 
     const body = await req.json();
+    const roleId = normalizeStudyRoleId(body?.role);
+    const studyRole = roleId ? getStudyRole(roleId) : null;
+    if (!roleId || !studyRole) return responseJson({ success: false, error: "Escolha uma trilha de estudo válida." }, 400);
     const subject = cleanText(body?.subject, 180);
-    if (!SUBJECTS.includes(subject)) return responseJson({ success: false, error: "Selecione uma matéria oficial do PCPA." }, 400);
-    const topic = cleanText(body?.topic, 120) || "geral";
+    const subjectProfile = getRoleSubject(roleId, subject);
+    if (!subjectProfile || !isStudySubject(roleId, subject)) return responseJson({ success: false, error: `Selecione uma matéria prevista para ${studyRole.label} no edital ${studyRole.notice}.` }, 400);
+    const topic = cleanText(body?.topic, 180) || "geral";
+    if (!isStudyTopic(roleId, subject, topic)) return responseJson({ success: false, error: "Selecione um tópico do escopo oficial desta matéria e trilha." }, 400);
     const allowedDifficulties = ["facil", "intermediaria", "dificil"];
     const difficulty = allowedDifficulties.includes(cleanText(body?.difficulty, 30)) ? cleanText(body?.difficulty, 30) : "intermediaria";
     const format = ["mista", "multipla_escolha", "certo_errado"].includes(cleanText(body?.format, 40)) ? cleanText(body?.format, 40) : "mista";
@@ -228,13 +225,28 @@ serve(async (req) => {
       : format === "certo_errado"
       ? "Produza somente itens Certo/Errado."
       : "Produza somente itens de múltipla escolha.";
-    const prompt = `Crie até ${count} questões autorais de prática para a matéria "${subject}", tópico geral "${topic}", dificuldade "${difficulty}". ${formatInstruction}\n\nNão receba nem use texto de qualquer questão real. Não atribua origem, banca ou metadados de concurso. Se não puder produzir um item claramente original e correto, retorne menos itens. Responda somente {"questions":[...]}.`;
+    const topicScope = topic === "geral" ? subjectProfile.topics.map((item) => `${item.name} [${item.relative_priority}]`).join("; ") : topic;
+    const prompt = `Crie até ${count} questões autorais para o cargo ${studyRole.label}, edital ${studyRole.notice}, matéria "${subject}", tópico selecionado "${topic === "geral" ? "programa completo" : topic}", dificuldade "${difficulty}". Escopo oficial permitido da matéria: ${subjectProfile.scope_summary}. Tópicos priorizados no edital (prioridade relativa, não previsão): ${topicScope}. Distribuição oficial da matéria: ${subjectProfile.question_count} questões e ${subjectProfile.points} pontos em uma prova de ${studyRole.total_questions} questões e ${studyRole.total_points} pontos. ${formatInstruction}\n\nNão receba nem use texto de qualquer questão real. Não copie, parafraseie de perto, reconstrua ou adapte qualquer questão protegida. Crie enunciados e alternativas genuinamente originais, limitados ao escopo informado. Não atribua origem, banca, número ou metadados de concurso, e nunca afirme que o item caiu em prova. Se não puder produzir um item claramente original, correto e dentro do edital, retorne menos itens. Responda somente {"questions":[...]}.`;
 
     const response = await generateWithFallback(primaryModel, fallbackModel, keys, prompt);
     if (!response?.ok) {
       const details = await response?.text().catch(() => "") ?? "";
-      console.error("[QUESTÕES IA] Não foi possível gerar itens autorais.", details.slice(0, 400));
-      return responseJson({ success: false, error: "Não foi possível gerar questões autorais agora. Tente novamente; o banco de questões reais não será alterado." }, 502);
+      const upstreamStatus = response?.status;
+      console.error("[QUESTÕES IA] Não foi possível gerar itens autorais.", upstreamStatus ?? "sem resposta", details.slice(0, 400));
+      const publicError = upstreamStatus === 401 || upstreamStatus === 403
+        ? "O provedor de IA recusou a credencial ou a permissão. O administrador deve conferir as secrets e o projeto configurado no Supabase."
+        : upstreamStatus === 404
+        ? "O modelo de IA configurado não foi encontrado. O administrador deve conferir GEMINI_MODEL e GEMINI_FALLBACK_MODEL nas secrets do Supabase."
+        : upstreamStatus === 429
+        ? "O provedor de IA atingiu um limite ou cota. Aguarde ou confira a cota do projeto configurado no Supabase."
+        : upstreamStatus === 400
+        ? "O provedor de IA rejeitou o formato da solicitação. Confira a configuração e a compatibilidade do modelo publicado."
+        : "Não foi possível conectar ao provedor de IA. Confira os logs da Edge Function no Supabase e tente novamente.";
+      return responseJson({
+        success: false,
+        error: publicError,
+        diagnostic_code: upstreamStatus ? `GEMINI_HTTP_${upstreamStatus}` : "GEMINI_UNREACHABLE",
+      }, 502);
     }
 
     const payload = await response.json() as Record<string, unknown>;
@@ -242,7 +254,7 @@ serve(async (req) => {
     if (!modelText) return responseJson({ success: false, error: "A IA não retornou itens aproveitáveis. O banco real permaneceu inalterado." }, 502);
     const parsed = parseJsonText(modelText);
     const rawQuestions = Array.isArray(parsed.questions) ? parsed.questions : [];
-    const request = { subject, topic, difficulty, format };
+    const request = { roleId, subject, topic, difficulty, format };
     const questions = rawQuestions
       .map((item) => normalizeQuestion(item, request))
       .filter((item): item is NonNullable<typeof item> => item !== null)
