@@ -1,17 +1,30 @@
-# Tutor PCPA — Flashcards e Simulados
+# Tutor PCPA — questões, simulados e revisão
 
-Um espaço de estudo para quem está se preparando para o concurso da Polícia Civil do Pará. Organize a revisão, pratique questões e acompanhe sua evolução rumo à aprovação.
+Aplicação de estudo para o concurso da Polícia Civil do Pará, com questões oficiais, prática direcionada, simulados, flashcards, caderno de erros e tutor de estudos.
 
-## O que você encontra
+## Recursos
 
-- **Questões por matéria:** pratique, confira o gabarito comentado e revise os assuntos em que teve dificuldade.
-- **Simulados:** treine com tempo de prova, modo foco e revisão do resultado.
-- **Flashcards:** revise conceitos com intervalos que se adaptam ao seu desempenho.
-- **Caderno de erros:** retome as questões que errou e acompanhe seu progresso.
-- **Tutor de estudos:** tire dúvidas e peça explicações passo a passo.
-- **Estatísticas e metas:** acompanhe seus acertos, dias de estudo, sequência e conquistas.
+- Banco de questões reais por matéria, tópico e dificuldade, com fontes verificadas.
+- Modo autoral por IA separado, claramente identificado como não real e sem inserir itens no banco oficial.
+- Prática de múltipla escolha e itens Certo/Errado.
+- Simulados com cronômetro, modo foco e revisão de respostas.
+- Flashcards com repetição espaçada e caderno de erros.
+- Procedência exibida com concurso, banca, cargo, ano, identificação do caderno, links da prova e do gabarito e, quando comprovada, data de aplicação.
+- Cadastro com aprovação manual. Confirmar o código OTP comprova controle do e-mail, mas não libera o acesso.
 
-## Matérias do concurso
+## Política do banco de questões
+
+O banco oficial contém somente questões reais, com origem, gabarito e permissão de reprodução verificáveis; não se completam lacunas por inferência ou IA. O texto integral só é copiado quando há permissão explícita para fins didáticos; sem essa evidência, o catálogo guarda apenas metadados e links oficiais.
+
+Há também um modo de prática por IA, separado do banco real. A função envia apenas matéria e tópico geral, sem textos de provas, e instrui o modelo a criar itens autorais sem copiar, reconstruir ou adaptar de perto questões específicas. Cada item é marcado como “IA · não é real”, não recebe metadados de concurso, não é salvo no banco oficial e não altera o histórico de respostas de questões reais. Como todo conteúdo de IA, confira explicações e respostas antes de memorizar.
+
+O arquivo versionado `supabase/data/pc-question-bank.v1.json` é consultado antes da web. Se já houver questões adequadas, a busca web não é acionada. Quando necessário, a aplicação reaproveita também questões licenciadas já persistidas e pesquisa na web somente para preencher o que falta. A deduplicação usa um fingerprint estável da prova e da questão.
+
+A versão atual do arquivo reúne 9 referências oficiais de concursos de Polícias Civis brasileiras e 11 questões integrais do PCDF Escrivão 2021, cujo documento declara permissão de reprodução didática. As outras referências permanecem como metadados e URLs; o fato de uma prova estar em site oficial não é tratado como autorização para copiar seu texto. As questões C/E mantêm as opções Certo e Errado e o gabarito oficial.
+
+As telas de estudo mostram os links separados de prova e gabarito quando aplicável e identificam se a justificativa é oficial ou didática. Comentários não substituem o gabarito; em matéria jurídica, confira a legislação vigente.
+
+## Matérias PCPA
 
 1. Língua Portuguesa
 2. Redação
@@ -25,14 +38,19 @@ Um espaço de estudo para quem está se preparando para o concurso da Polícia C
 10. Legislação Especial
 11. Estatística
 
-## Como usar as questões
+## Desenvolvimento
 
-O banco de prática, os simulados, os flashcards e o caderno de erros exibem apenas questões cuja origem oficial e cujo gabarito tenham sido verificados. Cada item mostra concurso, banca, cargo, ano, número da questão e, quando comprovada, data da prova. O enunciado é vinculado ao caderno oficial e o gabarito a documento(s) oficial(is), com links separados quando necessário. Questões que não possam ser confirmadas não são incluídas nem substituídas por questões inventadas por IA.
+```bash
+npm install
+npm run dev
+```
 
-A IA pode ajudar a produzir o comentário didático da resolução; esse comentário não é o gabarito oficial. Confira a fonte original, o edital e a legislação vigente. Quando aparecer **“⚠️ Verificar Lei Seca”**, confirme o dispositivo antes de memorizar.
+Build de validação:
 
-## Dica de estudo
+```bash
+npm run build
+```
 
-Escolha uma matéria, faça uma sessão curta de questões e transforme os erros em revisão. A constância ajuda mais do que tentar estudar tudo de uma vez.
+Para secrets, migrations, publicação das Edge Functions, SMTP e aprovação manual, consulte [`docs/CONFIGURACAO_TECNICA.md`](docs/CONFIGURACAO_TECNICA.md).
 
-> Material de apoio para estudos. Não substitui o edital, a legislação atualizada nem os gabaritos oficiais.
+> Material de apoio. Não substitui o edital, a legislação atualizada nem os documentos e gabaritos oficiais.

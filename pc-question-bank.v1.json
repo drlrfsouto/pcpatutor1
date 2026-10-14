@@ -1,0 +1,363 @@
+{
+  "schema_version": 1,
+  "catalog_version": "2026-10-14.1",
+  "last_reviewed": "2026-10-14",
+  "policy": {
+    "question_text": "Texto integral somente quando o documento oficial declara expressamente permissão de reprodução para fins didáticos, com citação da fonte.",
+    "unlicensed_sources": "Guardar apenas metadados e URLs oficiais; não transcrever enunciados, alternativas ou justificativas.",
+    "question_generation": "Proibida. Cada item em questions reproduz questão existente e resposta/justificativa oficial comprovadas.",
+    "editorial_fields": "subject, topic e difficulty são classificações de estudo e não metadados atribuídos pela banca."
+  },
+  "exam_sources": [
+    {
+      "id": "pcdf-escrivao-2021",
+      "police_civil": "Polícia Civil do Distrito Federal (PCDF)",
+      "uf": "DF",
+      "contest": "Concurso público para provimento de vagas no cargo de Escrivão de Polícia da PCDF",
+      "bank": "CEBRASPE",
+      "cargo": "Escrivão de Polícia",
+      "notice_year": 2019,
+      "application_year": 2021,
+      "application_date": "2021-08-21",
+      "caderno": "Matriz_519_PCDF_001_00",
+      "question_url": "https://cdn.cebraspe.org.br/concursos/pc_df_19_escrivao/arquivos/MATRIZ_519_PCDF_001_00_BONECA_COMJUSTIFICATIVA.PDF",
+      "answer_url": "https://cdn.cebraspe.org.br/concursos/pc_df_19_escrivao/arquivos/GAB_DEFINITIVO_MATRIZ_519_PCDF_001_00.PDF",
+      "application_date_evidence_url": "https://cdn.cebraspe.org.br/concursos/pc_df_19_escrivao/arquivos/PC_DF_19_ESCRIVAO_PADRO_DE_RESPOSTA_DEFINITIVO.PDF",
+      "reproduction_permission": "explicit",
+      "license_terms": "É permitida a reprodução deste material apenas para fins didáticos, desde que citada a fonte.",
+      "license_evidence_url": "https://cdn.cebraspe.org.br/concursos/pc_df_19_escrivao/arquivos/MATRIZ_519_PCDF_001_00_BONECA_COMJUSTIFICATIVA.PDF",
+      "catalog_status": "verified_pair_and_explicit_didactic_permission",
+      "verification_note": "O caderno contém justificativas oficiais; o gabarito definitivo identifica o cargo e a mesma Matriz_519_PCDF_001_00. As questões anuladas 58 e 62 não foram cadastradas."
+    },
+    {
+      "id": "pcdf-agente-2021",
+      "police_civil": "Polícia Civil do Distrito Federal (PCDF)",
+      "uf": "DF",
+      "contest": "Concurso público para provimento de vagas e formação de cadastro de reserva no cargo de Agente de Polícia da PCDF",
+      "bank": "CEBRASPE",
+      "cargo": "Agente de Polícia",
+      "notice_year": 2020,
+      "application_year": 2021,
+      "application_date": "2021-08-22",
+      "question_url": "https://cdn.cebraspe.org.br/concursos/pc_df_20_agente/arquivos/PCDF_AGENTE_001_COMJUSTIFICATIVA.PDF",
+      "answer_url": "https://cdn.cebraspe.org.br/concursos/pc_df_20_agente/arquivos/PCDF_AGENTE_001_COMJUSTIFICATIVA.PDF",
+      "official_contest_url": "https://www.cebraspe.org.br/concursos/pc_df_20_agente",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "official_document_metadata_only",
+      "verification_note": "O PDF oficial contém itens e justificativas. Não foi confirmada permissão explícita de reprodução; por isso nenhum texto foi copiado para questions."
+    },
+    {
+      "id": "pcpa-c206-2021",
+      "police_civil": "Polícia Civil do Estado do Pará (PCPA)",
+      "uf": "PA",
+      "contest": "Concurso Público C-206 — SEPLAD/PCPA",
+      "bank": "Instituto AOCP",
+      "cargo": "Delegado de Polícia Civil",
+      "application_year": 2021,
+      "official_contest_url": "https://www2.institutoaocp.org.br/concurso.jsp?id=289",
+      "question_url": null,
+      "answer_url": null,
+      "reproduction_permission": "not_verified",
+      "catalog_status": "official_contest_page_metadata_only",
+      "verification_note": "Página oficial do concurso registra publicações do C-206, inclusive gabarito definitivo em 2021. Não foram copiados textos de prova."
+    },
+    {
+      "id": "pcpa-c207-2021",
+      "police_civil": "Polícia Civil do Estado do Pará (PCPA)",
+      "uf": "PA",
+      "contest": "Concurso Público C-207 — SEPLAD/PCPA",
+      "bank": "Instituto AOCP",
+      "cargo": "Investigador, Escrivão e Papiloscopista",
+      "application_year": 2021,
+      "official_contest_url": "https://admin.institutoaocp.org.br/concurso.jsp?id=302",
+      "question_url": null,
+      "answer_url": null,
+      "reproduction_permission": "not_verified",
+      "catalog_status": "official_contest_page_metadata_only",
+      "verification_note": "Página oficial do concurso registra cadernos/resultados e gabaritos definitivos do C-207 em 2021. Não foram copiados textos de prova."
+    },
+    {
+      "id": "pcro-tecnico-necropsia-cg4-2022",
+      "police_civil": "Polícia Civil do Estado de Rondônia (PC/RO)",
+      "uf": "RO",
+      "contest": "Concurso público PC/RO — Edital nº 02/2022/PC-DGPC",
+      "bank": "CEBRASPE",
+      "cargo": "Técnico em Necropsia (Cargo 6)",
+      "notice_year": 2022,
+      "application_year": 2022,
+      "application_date": "2022-09-25",
+      "caderno": "732_PCRO_CG4_01",
+      "question_url": "https://cdn.cebraspe.org.br/concursos/pc_ro_22/arquivos/732_PCRO_CG4_01.PDF",
+      "answer_url": "https://cdn.cebraspe.org.br/concursos/pc_ro_22/arquivos/GAB_DEFINITIVO_732_PCRO_CG4_01.PDF",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "verified_pair_metadata_only",
+      "verification_note": "Caderno CG4 e gabarito definitivo CG4 identificam o Cargo 6 — Técnico em Necropsia e aplicação em 25/09/2022. Texto integral não copiado por falta de permissão explícita."
+    },
+    {
+      "id": "pces-delegado-2022-pair-pending",
+      "police_civil": "Polícia Civil do Estado do Espírito Santo (PCES)",
+      "uf": "ES",
+      "contest": "Concurso PCES para Delegado — Edital nº 1/2022",
+      "bank": "CEBRASPE",
+      "cargo": "Delegado de Polícia",
+      "notice_year": 2022,
+      "application_year": 2022,
+      "question_url": "https://cdn.cebraspe.org.br/concursos/pc_es_22_delegado/arquivos/729_PC_ES_CG1_01.PDF",
+      "candidate_answer_url": "https://cdn.cebraspe.org.br/concursos/pc_es_22_delegado/arquivos/GAB_DEFINITIVO_729_PC_ES_001_01.PDF",
+      "official_contest_url": "https://www.cebraspe.org.br/concursos/pc_es_22_delegado",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "official_documents_pairing_not_verified",
+      "verification_note": "Os dois documentos oficiais foram localizados, mas o código do caderno CG1_01 não foi reconciliado com o identificador 001_01 do gabarito. Não parear nem transcrever até confirmar."
+    },
+    {
+      "id": "pcpe-edital-2023-matriz-954",
+      "police_civil": "Polícia Civil do Estado de Pernambuco (PCPE)",
+      "uf": "PE",
+      "contest": "PCPE — Edital de 2023",
+      "bank": "CEBRASPE",
+      "notice_year": 2023,
+      "application_year": 2024,
+      "question_url": "https://cdn.cebraspe.org.br/concursos/pc_pe_23/arquivos/MATRIZ_954PC_PE001_00_COM_JUSTIFICATIVA.PDF",
+      "answer_url": "https://cdn.cebraspe.org.br/concursos/pc_pe_23/arquivos/MATRIZ_954PC_PE001_00_COM_JUSTIFICATIVA.PDF",
+      "official_contest_url": "https://cdn.cebraspe.org.br/concursos/pc_pe_23/arquivos/ED_1_2023_PC_PE_ABERTURA.PDF",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "official_combined_question_and_justifications_metadata_only",
+      "verification_note": "O PDF oficial 954 contém questões e justificativas no mesmo documento. O cargo não foi confirmado diretamente no documento examinado e foi deixado sem preenchimento; texto integral não copiado."
+    },
+    {
+      "id": "pcmg-investigador-2025",
+      "police_civil": "Polícia Civil do Estado de Minas Gerais (PCMG)",
+      "uf": "MG",
+      "contest": "PCMG — Investigador de Polícia I, Edital nº 04/2024",
+      "bank": "FGV",
+      "cargo": "Investigador de Polícia I",
+      "notice_year": 2024,
+      "application_year": 2025,
+      "application_date": "2025-01-26",
+      "caderno": "Tipo 1 — Branca",
+      "question_url": "https://conhecimento.fgv.br/sites/default/files/concursos/investigador-de-policia-icns401-tipo-1.pdf",
+      "answer_url": "https://conhecimento.fgv.br/sites/default/files/concursos/gabaritodefinitivo_pcgmpinvestigador.pdf",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "verified_pair_metadata_only",
+      "verification_note": "Caderno e gabarito definitivo identificam o mesmo cargo; o gabarito discrimina os tipos 1–4 e informa aplicação em 26/01/2025. Texto integral não copiado por falta de permissão explícita."
+    },
+    {
+      "id": "pcpi-oficial-investigador-2026",
+      "police_civil": "Polícia Civil do Estado do Piauí (PCPI)",
+      "uf": "PI",
+      "contest": "PCPI — Edital nº 02/2025",
+      "bank": "FGV",
+      "cargo": "Oficial Investigador",
+      "notice_year": 2025,
+      "application_year": 2026,
+      "application_date": "2026-01-25",
+      "caderno": "Tipo 1 — Branca; Oficial Investigador — prova 1, turno da tarde",
+      "question_url": "https://conhecimento.fgv.br/sites/default/files/concursos/oficial-investigador-cns100-tipo-1.pdf",
+      "answer_url": "https://conhecimento.fgv.br/sites/default/files/concursos/pc-pi-investigador-e-perito-2025.pdf",
+      "official_contest_url": "https://conhecimento.fgv.br/concursos/pcpi25/2",
+      "reproduction_permission": "not_verified",
+      "catalog_status": "verified_pair_metadata_only",
+      "verification_note": "O caderno identifica Oficial Investigador, Tipo 1 — Branca. O gabarito definitivo identifica a prova Oficial Investigador — 1, turno da tarde, aplicada em 25/01/2026. Texto integral não copiado por falta de permissão explícita."
+    }
+  ],
+  "questions": [
+    {
+      "local_id": "pcdf-escrivao-2021-item-55",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Processual Penal",
+      "topic": "Competência para julgamento do latrocínio",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Determinado cidadão norte-americano em férias em Brasília cometeu o crime de homicídio ao fugir da cena de crime de tráfico ilícito de entorpecentes, supostamente por ele praticado. Após o crime, ele fugiu para o hotel onde se encontrava hospedado desde que chegou ao Brasil. Cinco minutos após ter adentrado em seu quarto, a polícia invadiu o local e conseguiu prendê-lo.\n\nConsiderando a jurisprudência do STF, julgue os itens a seguir, a partir da situação hipotética precedente.\n\nSe ficar constatado que o assassinato cometido pelo referido cidadão norte-americano configura o crime de latrocínio, a competência para seu julgamento será do juiz singular.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Certo",
+      "official_answer_letter": "C",
+      "explanation": "A competência para o processo e julgamento de latrocínio é do juiz singular (Súmula n.º 603 do Supremo Tribunal Federal).",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "55"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-56",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Constitucional",
+      "topic": "Crimes inafiançáveis e imprescritibilidade",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Determinado cidadão norte-americano em férias em Brasília cometeu o crime de homicídio ao fugir da cena de crime de tráfico ilícito de entorpecentes, supostamente por ele praticado. Após o crime, ele fugiu para o hotel onde se encontrava hospedado desde que chegou ao Brasil. Cinco minutos após ter adentrado em seu quarto, a polícia invadiu o local e conseguiu prendê-lo.\n\nConsiderando a jurisprudência do STF, julgue os itens a seguir, a partir da situação hipotética precedente.\n\nO crime de tráfico ilícito de entorpecentes é considerado imprescritível, inafiançável e insuscetível de graça ou anistia.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Errado",
+      "official_answer_letter": "E",
+      "explanation": "Estabelece o art. XLIII da Constituição Federal que o crime tráfico ilícito de entorpecentes e drogas afins é inafiançável e insuscetível de graça ou anistia, mas não o coloca como imprescritível.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "56"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-57",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Processual Penal",
+      "topic": "Habeas corpus: legitimidade e capacidade postulatória",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Determinado cidadão norte-americano em férias em Brasília cometeu o crime de homicídio ao fugir da cena de crime de tráfico ilícito de entorpecentes, supostamente por ele praticado. Após o crime, ele fugiu para o hotel onde se encontrava hospedado desde que chegou ao Brasil. Cinco minutos após ter adentrado em seu quarto, a polícia invadiu o local e conseguiu prendê-lo.\n\nConsiderando a jurisprudência do STF, julgue os itens a seguir, a partir da situação hipotética precedente.\n\nCaso o referido cidadão norte-americano considere ilegal a sua prisão, ele próprio, mesmo sendo estrangeiro, poderá impetrar habeas corpus em face da autoridade coatora, sendo prescindível o patrocínio judicial por advogado nesse caso.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Certo",
+      "official_answer_letter": "C",
+      "explanation": "Qualquer do povo, nacional ou estrangeiro, independentemente de capacidade civil, política, profissional, de idade, sexo, profissão, estado mental, pode fazer uso do habeas corpus. A impetração do habeas corpus, pela própria parte, a seu favor ou de terceiro, conforme possibilita o ordenamento processual penal, não fere o disposto no art. 133 da Carta Magna, posto que esse dispositivo não obriga o patrocínio judicial por advogado.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "57"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-60",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Constitucional",
+      "topic": "Direitos do preso",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "A obrigação de identificação do responsável por conduzir o interrogatório do preso está expressamente prevista na Constituição Federal.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Certo",
+      "official_answer_letter": "C",
+      "explanation": "Está previsto expressamente no art. 5.º, inc. LXIV o direito do preso em saber quem é o responsável pela sua prisão e interrogatório.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "60"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-61",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Administrativo",
+      "topic": "Defesa técnica em processo administrativo disciplinar",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Em processo administrativo disciplinar, a falta de defesa técnica, por advogado, configura desrespeito aos princípios do contraditório e da ampla defesa.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Errado",
+      "official_answer_letter": "E",
+      "explanation": "A falta de defesa técnica por advogado não agride o contraditório e a ampla defesa, conforme já reconhecido de forma pacífica pelo STF a partir da edição da Súmula Vinculante n.º 5.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "61"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-63",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Penal Geral",
+      "topic": "Extorsão e estelionato",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Jamil telefonou para Lurdes simulando o sequestro da neta dela. Ambos localizavam-se em Brasília – DF. Ludibriada, Lurdes enviou dinheiro à conta de Jorge, nascido e residente no Paraguai e comparsa de Jamil. Jorge foi condenado e cumpriu pena no estrangeiro pelos fatos narrados.\n\nNo que se refere a essa situação hipotética, julgue os itens que se seguem.\n\nJamil praticou o crime de estelionato.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Errado",
+      "official_answer_letter": "E",
+      "explanation": "A conduta de Jamil configura o crime de extorsão (art. 158 do CPB) com a causa de aumento pelo concurso de pessoas. No estelionato, ao contrário da extorsão, a vítima não se percebe em uma situação criminosa e entrega o bem em razão do engano ou fraude, não porque se sente ameaçada.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "63"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-64",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Penal Geral",
+      "topic": "Efeitos da condenação e pena cumprida no exterior",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Jamil telefonou para Lurdes simulando o sequestro da neta dela. Ambos localizavam-se em Brasília – DF. Ludibriada, Lurdes enviou dinheiro à conta de Jorge, nascido e residente no Paraguai e comparsa de Jamil. Jorge foi condenado e cumpriu pena no estrangeiro pelos fatos narrados.\n\nNo que se refere a essa situação hipotética, julgue os itens que se seguem.\n\nJorge não poderá ser preso no Brasil pelos mesmos fatos.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Errado",
+      "official_answer_letter": "E",
+      "explanation": "De acordo com o art. 8.º do CPB, há previsão de atenuação de pena quando um estrangeiro cumpre pena pelo mesmo crime em país que não o Brasil. Dessa forma, não há que se falar que Jorge não poderá ser preso no Brasil, pois isso dependerá da qualidade e da quantidade da pena cumprida no estrangeiro em comparação com sua condenação no Brasil pelos mesmos fatos.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "64"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-65",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Penal Geral",
+      "topic": "Lugar do crime e aplicação da lei penal",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Jamil telefonou para Lurdes simulando o sequestro da neta dela. Ambos localizavam-se em Brasília – DF. Ludibriada, Lurdes enviou dinheiro à conta de Jorge, nascido e residente no Paraguai e comparsa de Jamil. Jorge foi condenado e cumpriu pena no estrangeiro pelos fatos narrados.\n\nNo que se refere a essa situação hipotética, julgue os itens que se seguem.\n\nÉ correto afirmar que o crime relatado na situação em tela foi praticado tanto no Brasil quanto no Paraguai.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Certo",
+      "official_answer_letter": "C",
+      "explanation": "Na hipótese do enunciado, o crime, para efeitos de aplicação da lei penal, ocorreu tanto no Brasil como no Paraguai, porque a ação ocorreu no Brasil, mas produziu seu resultado (recebimento do dinheiro transferido) no Paraguai. Código Penal, art. 6.º.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "65"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-66",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Penal Geral",
+      "topic": "Desacato e dolo específico",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Em cada um dos itens subsecutivos, é apresentada uma situação hipotética relativa a crimes contra a administração pública, seguida de uma assertiva a ser julgada.\n\nDenilson, artista de rua, vestiu-se, de forma jocosa e satírica, com distintivos e símbolos da Polícia Civil do Distrito Federal. Nessa situação, Denilson praticou o crime de desacato.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Errado",
+      "official_answer_letter": "E",
+      "explanation": "O crime de desacato exige o dolo do agente em menosprezar, ofender, humilhar, desprestigiar, o funcionário público que está no exercício da sua profissão ou em razão dela. Na hipótese, não está presente o dolo de desacatar um funcionário público, havendo mero animus jocandi ou, no máximo, intenção de crítica humorada à instituição policial. O intuito jocoso e satírico direcionado a uma instituição, além de estar respaldado pelo direito constitucional à liberdade de expressão, não configura, em nenhuma hipótese, crime contra a administração pública.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "66"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-67",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Penal Geral",
+      "topic": "Concussão",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Após ter sido roubada, Fabrícia procurou uma delegacia, onde foi atendida por agente de polícia que exigiu da vítima certa quantia em dinheiro para proceder às diligências de praxe. Nessa situação, o agente praticou crime de concussão.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Certo",
+      "official_answer_letter": "C",
+      "explanation": "O crime de concussão é crime formal e se consuma no momento em que o funcionário público exige a vantagem indevida, independentemente de ter alcançado ou não seu intento. Código Penal, art. 316.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "67"
+    },
+    {
+      "local_id": "pcdf-escrivao-2021-item-68",
+      "source_id": "pcdf-escrivao-2021",
+      "subject": "Direito Penal Geral",
+      "topic": "Condescendência criminosa e corrupção passiva",
+      "difficulty": "intermediaria",
+      "type": "certo_errado",
+      "prompt": "Acerca dos delitos contra a administração pública, julgue os itens a seguir.\n\nSituação hipotética: Determinado funcionário público que não tem atribuição para responsabilizar, após receber vantagem indevida, deixou de levar ao conhecimento da autoridade competente a infração cometida por subordinado no exercício do cargo. Assertiva: Nesse caso, o referido funcionário público incorreu em crime de condescendência criminosa.",
+      "options": [
+        "Certo",
+        "Errado"
+      ],
+      "answer": "Errado",
+      "official_answer_letter": "E",
+      "explanation": "Configura crime de corrupção passiva, e não condescendência criminosa, o funcionário público receber uma vantagem indevida em razão do cargo. Não se trata de condescendência criminosa, caso em que o agente deixa de praticar o ato por clemência, tão-somente.",
+      "editorial_note": "A classificação de matéria, tópico e dificuldade é editorial; não é metadado atribuído pela banca.",
+      "question_number": "68"
+    }
+  ]
+}
