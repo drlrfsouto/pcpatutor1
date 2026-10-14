@@ -2,13 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import { getDemoAttempts, getDemoWrongAnswers } from '@/lib/local-storage';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
+import { isVerifiedRealQuestion } from '@/lib/question-provenance';
 
 export interface StudyAttemptSummary {
   id: string;
   question_id: string;
   is_correct: boolean;
   created_at: string;
-  question?: Pick<PcpaQuestion, 'subject'> | null;
+  question?: Pick<PcpaQuestion, 'subject' | 'source'> | null;
 }
 
 export interface StudyStats {
@@ -25,9 +26,9 @@ export function useStudyStats(userId?: string) {
     queryFn: async (): Promise<StudyStats> => {
       if (isSupabaseConfigured && userId) {
         const [{ data: attempts, error: attemptsError }, { data: streak, error: streakError }, { count, error: wrongError }] = await Promise.all([
-          supabase.from('pcpa_attempts').select('id,question_id,is_correct,created_at,question:pcpa_questions(subject)').eq('user_id', userId).order('created_at', { ascending: false }).limit(500),
+          supabase.from('pcpa_attempts').select('id,question_id,is_correct,created_at,question:pcpa_questions!inner(subject,source)').eq('user_id', userId).eq('question.source', 'concurso_real').order('created_at', { ascending: false }).limit(500),
           supabase.from('pcpa_study_streaks').select('current_streak,longest_streak,total_study_days').eq('user_id', userId).maybeSingle(),
-          supabase.from('pcpa_wrong_answers').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('mastered', false),
+          supabase.from('pcpa_wrong_answers').select('id,question:pcpa_questions!inner(id,source)', { count: 'exact', head: true }).eq('user_id', userId).eq('mastered', false).eq('question.source', 'concurso_real'),
         ]);
         if (attemptsError) throw attemptsError;
         if (streakError) throw streakError;
@@ -41,19 +42,19 @@ export function useStudyStats(userId?: string) {
         };
       }
 
-      const localAttempts = getDemoAttempts();
+      const localAttempts = getDemoAttempts().filter((attempt) => isVerifiedRealQuestion(attempt.question));
       return {
         attempts: localAttempts.map((attempt) => ({
           id: attempt.id,
           question_id: attempt.question_id,
           is_correct: attempt.is_correct,
           created_at: attempt.created_at,
-          question: { subject: attempt.question.subject },
+          question: { subject: attempt.question.subject, source: attempt.question.source },
         })),
         currentStreak: getLocalStreak(localAttempts.map((attempt) => attempt.created_at)),
         longestStreak: 0,
         totalStudyDays: new Set(localAttempts.map((attempt) => new Date(attempt.created_at).toDateString())).size,
-        wrongAnswerCount: getDemoWrongAnswers().filter((item) => !item.mastered).length,
+        wrongAnswerCount: getDemoWrongAnswers().filter((item) => !item.mastered && isVerifiedRealQuestion(item.question)).length,
       };
     },
   });

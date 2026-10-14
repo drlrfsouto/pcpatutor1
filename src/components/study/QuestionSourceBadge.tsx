@@ -17,7 +17,7 @@ export function QuestionSourceBadge({ source, metadata, className }: QuestionSou
       icon: FileCheck2,
       label: 'Questão real',
       className: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15',
-      description: data?.concurso ? `${data.concurso}${data.banca ? ` · ${data.banca}` : ''}${data.ano ? ` · ${data.ano}` : ''}` : 'Questão identificada em fonte de concurso.',
+      description: data?.concurso ? `${data.concurso}${data.banca ? ` · ${data.banca}` : ''}${data.data_aplicacao ? ` · prova em ${data.data_aplicacao}` : data.ano ? ` · ${data.ano}` : ''}` : 'Questão identificada em fonte oficial e validada com gabarito.',
     },
     ai_generated: {
       icon: Sparkles,
@@ -51,8 +51,9 @@ export function QuestionSourceBadge({ source, metadata, className }: QuestionSou
             {source === 'concurso_real' && data && (
               <div className="space-y-1 border-t border-line pt-2 text-xs text-slate-400">
                 {data.cargo && <p>Cargo: {data.cargo}</p>}
+                {data.data_aplicacao && <p>Data da prova: {data.data_aplicacao}</p>}
                 {data.numero_questao && <p>Questão nº {data.numero_questao}</p>}
-                {data.gabarito_oficial && <p>Gabarito oficial informado: {data.gabarito_oficial}</p>}
+                {data.nome_fonte && <p>Documento: {data.nome_fonte}</p>}
               </div>
             )}
             {safeUrl && <a href={safeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-cyan-300 hover:underline">Ver fonte original <ExternalLink className="h-3 w-3" /></a>}

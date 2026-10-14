@@ -21,11 +21,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { QuestionProvenance } from '@/components/study/QuestionProvenance';
 import { QuestionSourceBadge } from '@/components/study/QuestionSourceBadge';
 import { SubjectBadge } from '@/components/ui/SubjectBadge';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion, WrongAnswerRecord } from '@/integrations/supabase/types';
 import { SUBJECT_NAMES } from '@/lib/constants/subjects';
+import { isVerifiedRealQuestion } from '@/lib/question-provenance';
 import { getDemoWrongAnswers, removeMasteredDemoWrongAnswers, updateDemoWrongAnswer, type DemoWrongAnswer } from '@/lib/local-storage';
 import { answerLetter } from '@/lib/utils';
 
@@ -47,7 +49,7 @@ export function WrongAnswersNotebook({ userId, onPractice }: WrongAnswersNoteboo
   const query = useQuery({
     queryKey: ['wrong-answers', userId ?? 'local'],
     queryFn: async (): Promise<NotebookRecord[]> => {
-      if (!isSupabaseConfigured || !userId) return getDemoWrongAnswers();
+      if (!isSupabaseConfigured || !userId) return getDemoWrongAnswers().filter((record) => isVerifiedRealQuestion(record.question));
       const { data, error } = await supabase
         .from('pcpa_wrong_answers')
         .select('*, question:pcpa_questions(*)')
@@ -55,7 +57,7 @@ export function WrongAnswersNotebook({ userId, onPractice }: WrongAnswersNoteboo
         .order('attempted_at', { ascending: false });
       if (error) throw error;
       return ((data ?? []) as unknown as (WrongAnswerRecord & { question: PcpaQuestion | null })[])
-        .filter((record) => record.question !== null) as WrongAnswerRecord[];
+        .filter((record) => isVerifiedRealQuestion(record.question)) as WrongAnswerRecord[];
     },
   });
   const allRecords = query.data ?? [];
@@ -183,9 +185,10 @@ function WrongQuestionCard({ record, number, expanded, onToggle, onReviewed, onM
       <span className="mt-1 text-slate-500">{expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</span>
     </button>
     {expanded && <div className="border-t border-white/[0.055] px-4 pb-4 pt-4 md:px-5 md:pb-5">
+      <QuestionProvenance question={question} showOfficialAnswer className="mb-4" />
       {question.needs_verification && <Alert className="mb-4 border-amber-400/20 bg-amber-400/[0.045] p-3"><AlertCircle className="h-4 w-4 text-amber-300" /><AlertDescription className="text-xs text-amber-100/80">⚠️ Verificar Lei Seca: confirme os dispositivos em fonte oficial atualizada.</AlertDescription></Alert>}
       <div className="space-y-2">{question.options.map((option, index) => { const letter = option.match(/^\s*([A-E])/i)?.[1]?.toUpperCase() ?? String.fromCharCode(65 + index); const isWrong = letter === wrongChoice; const isAnswer = letter === correctChoice; return <div key={`${letter}-${option}`} className={`rounded-xl border px-3 py-2.5 text-xs leading-5 ${isAnswer ? 'border-mint/20 bg-mint/[0.045] text-mint' : isWrong ? 'border-rose-400/20 bg-rose-400/[0.04] text-rose-200' : 'border-white/[0.04] text-slate-400'}`}><span className="mr-2 font-bold">{letter}.</span>{option.replace(/^\s*[A-E]\s*[).:-]?\s*/i, '')}{isWrong && <span className="ml-2 text-[9px] uppercase text-rose-300">Sua resposta</span>}{isAnswer && <span className="ml-2 text-[9px] uppercase text-mint">Gabarito</span>}</div>; })}</div>
-      <div className="mt-4 rounded-xl border border-white/[0.05] bg-white/[0.02] p-4"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">Comentário</p><p className="mt-2 text-xs leading-6 text-slate-300">{question.gabarito_comentado}</p>{question.ponto_de_atencao && <p className="mt-3 border-t border-white/[0.05] pt-3 text-xs leading-5 text-amber-100/70"><strong className="text-amber-200">Ponto de atenção:</strong> {question.ponto_de_atencao}</p>}</div>
+      <div className="mt-4 rounded-xl border border-white/[0.05] bg-white/[0.02] p-4"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">Comentário didático assistido por IA</p><p className="mt-2 text-xs leading-6 text-slate-300">{question.gabarito_comentado}</p>{question.ponto_de_atencao && <p className="mt-3 border-t border-white/[0.05] pt-3 text-xs leading-5 text-amber-100/70"><strong className="text-amber-200">Ponto de atenção:</strong> {question.ponto_de_atencao}</p>}</div>
       <div className="mt-4 flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={onPractice}><RotateCcw className="h-3.5 w-3.5" />Tentar novamente</Button>{!record.reviewed && <Button size="sm" variant="outline" onClick={onReviewed} disabled={busy}><Check className="h-3.5 w-3.5" />Marcar revisada</Button>}{!record.mastered && <Button size="sm" onClick={onMastered} disabled={busy}>{busy ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Flame className="h-3.5 w-3.5" />}Dominei</Button>}</div>
     </div>}
   </Card>;

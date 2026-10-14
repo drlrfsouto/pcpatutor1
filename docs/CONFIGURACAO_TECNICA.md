@@ -8,12 +8,15 @@ No painel do projeto Supabase, abra **Edge Functions → Secrets** e cadastre:
 
 | Nome da secret | Valor |
 |---|---|
-| `GEMINI_API_KEY` | Chave criada no Google AI Studio |
-| `TAVILY_API_KEY` | Chave da conta Tavily |
+| `GEMINI_API_KEY` | Chave principal criada no Google AI Studio; usada pelo Tutor e para comentários explicativos, não para criar enunciados de questões |
+| `GEMINI_API_KEY_2` | Opcional; chave de contingência, de preferência associada a outro projeto Google Cloud/AI Studio |
+| `TAVILY_API_KEY` | Chave da conta Tavily; necessária para localizar fontes oficiais de provas |
 | `GEMINI_MODEL` | Opcional; padrão atual: `gemini-3.8-flash` |
 | `GEMINI_FALLBACK_MODEL` | Opcional; padrão atual: `gemini-3.5-flash-lite` |
 
-`GEMINI_API_KEY` é usada pelo Tutor e pela geração de questões inéditas. `TAVILY_API_KEY` habilita a busca web de questões reais; sem ela, a geração pode continuar, mas os novos itens devem ser identificados como gerados por IA. Os nomes dos modelos são opcionais porque o código já tem padrões. Após salvar as secrets no Supabase, as Edge Functions podem lê-las sem que sejam incluídas no aplicativo do aluno. Pelo painel, não é necessário publicar as funções novamente; a alteração fica disponível para elas.
+`GEMINI_API_KEY` é a chave principal. Se ela falhar ao iniciar uma chamada, o Tutor e a busca de questões tentam `GEMINI_API_KEY_2` e, em seguida, o modelo alternativo configurado. Cadastre `GEMINI_API_KEY_2` somente em **Edge Functions → Secrets** do Supabase; não a envie por mensagem nem a inclua em variável `VITE_*`. A chave reserva funciona melhor quando pertence a outro projeto Google Cloud/AI Studio: os limites do Gemini são por projeto, não por chave, então duas chaves do mesmo projeto compartilham a mesma cota. A contingência não aumenta nem garante limites; apenas tenta o outro projeto se a chamada falhar.
+
+`TAVILY_API_KEY` é necessária para pesquisar provas e gabaritos em fontes primárias oficiais. Se a busca não estiver configurada ou não encontrar evidência suficiente, o sistema não cria nem insere questões como substitutas. Os nomes dos modelos são opcionais porque o código já tem padrões. As Edge Functions leem as chaves com segurança no Supabase; o frontend nunca as recebe.
 
 Também é possível cadastrá-las pela CLI, substituindo os valores entre aspas pelas suas próprias chaves:
 
@@ -25,13 +28,24 @@ supabase secrets set \
   GEMINI_FALLBACK_MODEL="gemini-3.5-flash-lite"
 ```
 
+Para cadastrar a chave reserva (opcional), use o painel de Secrets ou execute também:
+
+```bash
+supabase secrets set GEMINI_API_KEY_2="SUA_CHAVE_DE_CONTINGENCIA"
+```
+
 **Não envie as chaves por mensagens, não as coloque no código do frontend e não as salve em arquivos versionados.** O arquivo `.env.example` contém apenas as variáveis públicas necessárias para conectar a interface ao Supabase. A chave `SUPABASE_SERVICE_ROLE_KEY` também deve permanecer somente no ambiente seguro do Supabase.
 
 ## Qual serviço faz o quê
 
-- **Tavily:** pesquisa páginas na web para localizar questões de concursos e material de referência. Não cria nem valida respostas por conta própria.
-- **Google AI Studio:** fornece a geração de texto usada pelo Tutor e pela criação de questões inéditas. Na pesquisa de questões, recebe os resultados encontrados para estruturar o material; a aplicação só mantém a etiqueta **Questão real** quando o conteúdo da fonte comprova o enunciado, as cinco alternativas, os dados da prova e o gabarito. Sem evidência suficiente, a questão é marcada como **Gerada por IA**.
+- **Tavily:** pesquisa páginas na web para localizar provas e gabaritos. Os resultados precisam vir de um domínio de banca organizadora ou órgão público aceito pela lista de fontes primárias da Edge Function.
+- **Google AI Studio:** auxilia o Tutor e estrutura o comentário explicativo a partir das fontes encontradas. Não cria nem completa enunciados ou alternativas. Uma questão só é salva quando a mesma fonte oficial comprova o enunciado, as cinco alternativas, banca, cargo, ano e gabarito oficial; a data da prova é guardada quando também aparece na fonte. Se a verificação falhar, a questão é descartada — não há preenchimento por IA.
+- **Interface de estudo:** prática, simulados, flashcards e caderno de erros filtram itens cuja origem e gabarito oficial não passam pela validação de procedência. O comentário de resolução pode usar IA e deve ser conferido no documento original.
 - **Recursos de estudo:** simulados, correção, repetição espaçada dos flashcards, estatísticas e gamificação são recursos da própria aplicação e não precisam de uma chamada de IA para funcionar.
+
+A migration `20261014130000_pcpa_official_questions_only.sql` restringe também o acesso pelo PostgREST: registros antigos de IA, manuais ou sem procedência completa não são apagados, mas deixam de ser legíveis por contas anônimas e autenticadas. A Edge Function com `service_role` continua podendo inserir novos itens verificados. Para publicar essa mudança, execute `supabase db push` no projeto correto.
+
+Antes de disponibilizar questões na aplicação, confirme que os termos da banca ou do órgão permitem a reprodução e redistribuição do texto da prova. O fato de a prova estar em um site oficial não significa, por si só, que o conteúdo esteja livre de direitos autorais; quando necessário, prefira exibir a referência e o link para a fonte.
 
 A API do Google AI Studio oferece uma faixa gratuita com limites e cotas; ela não é ilimitada. Consulte as condições atuais da sua conta e região antes de publicar para muitos usuários. Consulte também os limites vigentes da Tavily.
 
@@ -50,7 +64,7 @@ O código chama `signInWithOtp` para enviá-lo e `verifyOtp` para validá-lo. Re
 
 O provedor de e-mail padrão do Supabase é restrito a testes: sem SMTP próprio, ele só entrega mensagens a endereços autorizados da equipe do projeto e tem limite baixo de envio. Para disponibilizar o acesso aos estudantes, configure um SMTP transacional em **Authentication → SMTP Settings**. Consulte os [limites e requisitos atuais de envio](https://supabase.com/docs/guides/auth/auth-smtp).
 
-As ferramentas de estudo continuam acessíveis no modo demonstração sem entrar. Uma conta autenticada só sincroniza progresso e usa recursos protegidos depois da aprovação.
+A interface continua acessível no modo demonstração sem entrar; questões de demonstração artificiais não são mostradas no Banco de questões, nos simulados ou nos flashcards. A busca de questões oficiais, a sincronização do progresso e os demais recursos protegidos exigem uma conta aprovada.
 
 ## Aprovação manual de novos cadastros
 

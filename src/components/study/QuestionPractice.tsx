@@ -12,7 +12,7 @@ import {
   LoaderCircle,
   RefreshCw,
   Search,
-  Sparkles,
+  ShieldCheck,
   Target,
   X,
   XCircle,
@@ -23,21 +23,28 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { QuestionProvenance } from '@/components/study/QuestionProvenance';
 import { QuestionSourceBadge } from '@/components/study/QuestionSourceBadge';
 import { SubjectBadge } from '@/components/ui/SubjectBadge';
 import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion, QuestionDifficulty } from '@/integrations/supabase/types';
 import { PCPA_SUBJECTS, type SubjectName } from '@/lib/constants/subjects';
-import { DEMO_QUESTIONS } from '@/lib/demo-data';
 import { recordAttempt } from '@/lib/attempts';
 import { saveDemoAttempt } from '@/lib/local-storage';
 import { answerLetter } from '@/lib/utils';
+import { filterVerifiedRealQuestions } from '@/lib/question-provenance';
 import { useWrongAnswerTracker } from '@/hooks/useWrongAnswerTracker';
 
 const DIFFICULTIES: { value: QuestionDifficulty; label: string }[] = [
   { value: 'facil', label: 'Fácil' },
   { value: 'intermediaria', label: 'Intermediária' },
   { value: 'dificil', label: 'Difícil' },
+];
+
+const SEARCH_STAGES = [
+  'Buscando questões reais em fontes oficiais…',
+  'Conferindo banca, concurso, cargo e data da prova…',
+  'Validando enunciado, alternativas e gabarito oficial…',
 ];
 
 interface QuestionPracticeProps {
@@ -50,14 +57,15 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
   const [subject, setSubject] = useState<string>(initialSubject ?? '');
   const [difficulty, setDifficulty] = useState<string>('');
   const [topic, setTopic] = useState('geral');
-  const [generationCount, setGenerationCount] = useState(5);
+  const [questionCount, setQuestionCount] = useState(5);
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [hasAnswered, setHasAnswered] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
-  const [searchSummary, setSearchSummary] = useState<{ real_questions?: number; ai_generated?: number; search_available?: boolean; sources_consulted?: string[] } | null>(null);
+  const [searchStageIndex, setSearchStageIndex] = useState(0);
+  const [searchSummary, setSearchSummary] = useState<{ real_questions?: number; search_available?: boolean; sources_consulted?: string[] } | null>(null);
   const queryClient = useQueryClient();
   const tracker = useWrongAnswerTracker();
   const lastInitialSubject = useRef(initialSubject);
@@ -72,18 +80,27 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
     }
   }, [initialSubject]);
 
+  useEffect(() => {
+    if (!generating) {
+      setSearchStageIndex(0);
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setSearchStageIndex((current) => (current + 1) % SEARCH_STAGES.length);
+    }, 2300);
+    return () => window.clearInterval(timer);
+  }, [generating]);
+
   const questionsQuery = useQuery({
     queryKey: ['questions', subject, difficulty],
     queryFn: async (): Promise<PcpaQuestion[]> => {
-      if (!isSupabaseConfigured) {
-        return DEMO_QUESTIONS.filter((question) => (!subject || question.subject === subject) && (!difficulty || question.difficulty === difficulty));
-      }
-      let query = supabase.from('pcpa_questions').select('*').order('created_at', { ascending: false }).limit(100);
+      if (!isSupabaseConfigured) return [];
+      let query = supabase.from('pcpa_questions').select('*').eq('source', 'concurso_real').order('created_at', { ascending: false }).limit(100);
       if (subject) query = query.eq('subject', subject);
       if (difficulty) query = query.eq('difficulty', difficulty);
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []) as unknown as PcpaQuestion[];
+      return filterVerifiedRealQuestions((data ?? []) as unknown as PcpaQuestion[]);
     },
   });
   const questions = questionsQuery.data ?? [];
@@ -106,7 +123,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
 
   async function generateQuestions() {
     if (!isSupabaseConfigured) {
-      toast.error('Novas questões indisponíveis no momento', { description: 'Pratique com as questões disponíveis ou tente novamente mais tarde.' });
+      toast.error('Pesquisa de questões indisponível', { description: 'Conecte o banco do aplicativo para buscar questões de provas e fontes oficiais.' });
       return;
     }
     if (!userId) {
@@ -118,22 +135,27 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
       return;
     }
     setGenerating(true);
+    setSearchStageIndex(0);
     setSearchSummary(null);
     try {
       const { data, error } = await supabase.functions.invoke('pcpa-gerar-questoes', {
-        body: { subject, topic: topic.trim() || 'geral', difficulty: difficulty || 'intermediaria', count: generationCount },
+        body: { subject, topic: topic.trim() || 'geral', difficulty: difficulty || 'intermediaria', count: questionCount },
       });
       if (error) throw error;
       const result = data as { success?: boolean; error?: string; questions?: PcpaQuestion[]; search_summary?: typeof searchSummary; message?: string };
-      if (!result?.success) throw new Error(result?.error || 'A busca não retornou questões.');
+      if (!result?.success) throw new Error(result?.error || 'A busca não encontrou questões oficiais verificáveis.');
       setSearchSummary(result.search_summary ?? null);
       await queryClient.invalidateQueries({ queryKey: ['questions'] });
       setQuestionIndex(0);
       setHasAnswered(false);
       setSelectedAnswer('');
-      toast.success(result.message || `${result.questions?.length ?? 0} questões prontas para praticar.`);
+      if ((result.search_summary?.real_questions ?? result.questions?.length ?? 0) > 0) {
+        toast.success(result.message || `${result.search_summary?.real_questions ?? result.questions?.length} questões reais verificadas.`);
+      } else {
+        toast.info(result.message || 'Nenhuma questão real com fonte e gabarito confirmados foi localizada. Não incluímos questões artificiais.');
+      }
     } catch {
-      toast.error('Não foi possível buscar novas questões', { description: 'Tente novamente em instantes. Suas respostas anteriores continuam salvas.' });
+      toast.error('A busca não pôde ser concluída', { description: 'Tente novamente em instantes. Nenhuma questão criada por IA será usada como substituta.' });
     } finally {
       setGenerating(false);
     }
@@ -180,31 +202,42 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
     <div className="animate-float-in mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-mint"><Target className="h-3.5 w-3.5" /> Prática direcionada</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Banco de questões</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Pratique por matéria, entenda cada alternativa e transforme seus erros em revisão inteligente.</p></div>
-        <div className="flex items-center gap-2 rounded-xl border border-line bg-white/[0.025] px-3 py-2 text-xs text-slate-400"><span className={`h-2 w-2 rounded-full ${isSupabaseConfigured ? 'bg-mint' : 'bg-amber-300'}`} />{isSupabaseConfigured ? 'Banco sincronizado' : 'Modo demonstrativo'}</div>
+        <div className="flex items-center gap-2 rounded-xl border border-line bg-white/[0.025] px-3 py-2 text-xs text-slate-400"><span className={`h-2 w-2 rounded-full ${isSupabaseConfigured ? 'bg-mint' : 'bg-amber-300'}`} />{isSupabaseConfigured ? 'Somente questões oficiais' : 'Fontes oficiais desconectadas'}</div>
       </div>
 
       <Card>
         <div className="flex items-start gap-3 border-b border-white/[0.055] p-5 md:px-6">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cyan-400/10 text-cyan-300"><Search className="h-4 w-4" /></span>
-          <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold text-slate-100">Monte sua sessão</h2><p className="mt-1 text-xs text-slate-500">A busca na web prioriza questões verificáveis de concursos e completa a lista com questões inéditas identificadas como IA.</p></div>
-          <Badge variant="secondary" className="hidden gap-1.5 sm:inline-flex"><Sparkles className="h-3 w-3 text-amber-200" />Busca inteligente</Badge>
+          <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold text-slate-100">Monte sua sessão</h2><p className="mt-1 text-xs text-slate-500">Só entram questões localizadas em provas ou gabaritos oficiais, com origem, banca e resposta verificadas. Não completamos a lista com questões inventadas.</p></div>
+          <Badge variant="secondary" className="hidden gap-1.5 sm:inline-flex"><ShieldCheck className="h-3 w-3 text-emerald-200" />Fonte oficial</Badge>
         </div>
         <CardContent className="grid gap-3 pt-5 sm:grid-cols-2 xl:grid-cols-[1.35fr_1fr_1fr_110px_auto] xl:items-end">
           <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Matéria</span><select className="field-select" value={subject} onChange={(event) => setSubject(event.target.value)}><option value="">Todas as matérias</option>{PCPA_SUBJECTS.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}</select></label>
           <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Tópico</span><input className="field-input" value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="Ex.: segurança pública" /></label>
           <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Dificuldade</span><select className="field-select" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Todas</option>{DIFFICULTIES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Questões</span><select className="field-select" value={generationCount} onChange={(event) => setGenerationCount(Number(event.target.value))}><option value={5}>5</option><option value={10}>10</option><option value={15}>15</option><option value={20}>20</option></select></label>
-          <Button onClick={generateQuestions} disabled={generating || !isSupabaseConfigured || !userId} className="w-full xl:min-w-40">{generating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}Pesquisar questões</Button>
-          {!isSupabaseConfigured && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-5">Esta versão de demonstração oferece questões de exemplo. A pesquisa de novas questões e outros recursos estarão disponíveis na versão completa.</p>}
+          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Questões</span><select className="field-select" value={questionCount} onChange={(event) => setQuestionCount(Number(event.target.value))}><option value={5}>5</option><option value={10}>10</option><option value={15}>15</option><option value={20}>20</option></select></label>
+          <Button onClick={generateQuestions} disabled={generating || !isSupabaseConfigured || !userId || !subject} className="w-full xl:min-w-40">{generating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}{generating ? 'Buscando questões reais…' : 'Buscar questões reais'}</Button>
+          {!isSupabaseConfigured && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-5">A conexão com o banco está indisponível. Para manter o compromisso de 100% questões reais, esta tela não mostra exemplos artificiais.</p>}
           {isSupabaseConfigured && !userId && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-5">Entre na sua conta para salvar seu progresso e acessar seu histórico de estudos.</p>}
         </CardContent>
       </Card>
 
-      {searchSummary && <Alert className="border-mint/20 bg-mint/[0.045]"><Sparkles className="h-4 w-4 text-mint" /><AlertTitle className="text-mint">Resumo da pesquisa</AlertTitle><AlertDescription>{searchSummary.search_available ? `${searchSummary.real_questions ?? 0} questões reais verificadas e ${searchSummary.ai_generated ?? 0} questões geradas por IA. As fontes verificadas aparecem nos detalhes de cada questão real.` : `Busca web indisponível nesta chamada; ${searchSummary.ai_generated ?? 0} questões foram geradas por IA e identificadas como tal.`}</AlertDescription></Alert>}
+      {generating && <div role="status" aria-live="polite" aria-atomic="true" className="animate-float-in overflow-hidden rounded-2xl border border-cyan-300/15 bg-gradient-to-r from-cyan-300/[0.06] via-emerald-300/[0.035] to-cyan-300/[0.06] p-4 shadow-[0_12px_50px_rgba(34,211,238,0.045)] sm:p-5">
+        <div className="flex items-start gap-3">
+          <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan-200/15 bg-cyan-300/[0.08] text-cyan-200"><span className="absolute inset-0 rounded-xl bg-cyan-300/10 animate-pulse" /><LoaderCircle className="relative h-5 w-5 animate-spin" /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-cyan-100">{SEARCH_STAGES[searchStageIndex]}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-400">A busca pode levar alguns segundos. Só adicionamos questões com fonte oficial e gabarito confirmado; se não encontrarmos, não substituímos por itens criados por IA.</p>
+          </div>
+          <span className="hidden items-end gap-1 pt-2 sm:flex" aria-hidden="true"><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200 [animation-delay:-.3s]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200 [animation-delay:-.15s]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200" /></span>
+        </div>
+      </div>}
+
+      {searchSummary && <Alert className={searchSummary.real_questions ? 'border-mint/20 bg-mint/[0.045]' : 'border-amber-300/20 bg-amber-300/[0.045]'}><ShieldCheck className={`h-4 w-4 ${searchSummary.real_questions ? 'text-mint' : 'text-amber-200'}`} /><AlertTitle className={searchSummary.real_questions ? 'text-mint' : 'text-amber-100'}>{searchSummary.real_questions ? 'Questões reais verificadas' : 'Nenhuma questão oficial encontrada'}</AlertTitle><AlertDescription>{searchSummary.real_questions ? `${searchSummary.real_questions} questão(ões) foram localizadas em fonte oficial e verificadas. Nenhuma questão artificial foi acrescentada.` : searchSummary.search_available ? 'As fontes consultadas não trouxeram enunciado, alternativas e gabarito oficial suficientes para validação. Nenhuma questão foi adicionada.' : 'A busca em fontes oficiais está indisponível neste momento. Nenhuma questão artificial foi acrescentada.'}</AlertDescription></Alert>}
 
       {questionsQuery.isError && <Alert className="border-rose-400/20 bg-rose-400/[0.06]"><AlertTriangle className="h-4 w-4 text-rose-300" /><AlertTitle className="text-rose-200">Não foi possível carregar as questões</AlertTitle><AlertDescription>Não foi possível atualizar sua lista agora. Tente novamente em instantes.<button onClick={() => questionsQuery.refetch()} className="ml-2 font-semibold text-rose-200 underline">Tentar novamente</button></AlertDescription></Alert>}
 
-      {isQuestionLoading ? <Card className="p-10 text-center"><LoaderCircle className="mx-auto h-6 w-6 animate-spin text-mint" /><p className="mt-3 text-sm text-slate-400">Carregando seu banco de questões…</p></Card> : question ? (
+      {isQuestionLoading || generating ? <Card className="p-10 text-center"><LoaderCircle className="mx-auto h-6 w-6 animate-spin text-mint" /><p className="mt-3 text-sm text-slate-400">{generating ? 'Validando e organizando questões de provas oficiais…' : 'Carregando seu banco de questões oficiais…'}</p></Card> : question ? (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex flex-wrap items-center gap-2"><SubjectBadge subject={question.subject} /><QuestionSourceBadge source={question.source} metadata={question.metadata} />{question.topic && <Badge variant="secondary">{question.topic}</Badge>}</div><span className="text-xs tabular-nums text-slate-500">Questão {questionIndex + 1} de {questions.length}</span></div>
           <Card className="overflow-hidden">
@@ -212,6 +245,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
             <CardContent className="p-5 md:p-7">
               {question.needs_verification && <Alert className="mb-5 border-amber-400/20 bg-amber-400/[0.055] p-3"><AlertTriangle className="h-4 w-4 text-amber-300" /><AlertDescription className="text-xs text-amber-100/80"><strong className="text-amber-200">⚠️ Verificar Lei Seca.</strong> Confirme os dispositivos citados no texto legal atualizado em fonte oficial antes de memorizar.</AlertDescription></Alert>}
               <h2 className="max-w-3xl text-base font-medium leading-7 text-slate-100 md:text-lg md:leading-8">{question.prompt}</h2>
+              <QuestionProvenance question={question} showOfficialAnswer={hasAnswered} className="mt-5" />
               <div className="mt-6 space-y-2.5">
                 {answerOptions.map((option) => {
                   const isSelected = selectedAnswer === option.letter;
@@ -227,7 +261,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
               </div>
 
               {hasAnswered && <div className={`mt-5 rounded-2xl border p-4 md:p-5 ${correct ? 'border-mint/20 bg-mint/[0.045]' : 'border-rose-400/15 bg-rose-400/[0.04]'}`}>
-                <div className="flex items-start gap-3"><span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ${correct ? 'bg-mint/10 text-mint' : 'bg-rose-400/10 text-rose-300'}`}>{correct ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}</span><div className="min-w-0 flex-1"><p className={`text-sm font-semibold ${correct ? 'text-mint' : 'text-rose-200'}`}>{correct ? 'Boa! Resposta correta.' : `A resposta correta é ${answerLetter(question.answer)}.`}</p><p className="mt-2 text-sm leading-6 text-slate-300">{question.gabarito_comentado}</p>{question.ponto_de_atencao && <div className="mt-3 rounded-xl border border-amber-400/10 bg-amber-400/[0.035] p-3"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-amber-200">Ponto de atenção</p><p className="mt-1 text-xs leading-5 text-slate-400">{question.ponto_de_atencao}</p></div>}</div></div>
+                <div className="flex items-start gap-3"><span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ${correct ? 'bg-mint/10 text-mint' : 'bg-rose-400/10 text-rose-300'}`}>{correct ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}</span><div className="min-w-0 flex-1"><p className={`text-sm font-semibold ${correct ? 'text-mint' : 'text-rose-200'}`}>{correct ? 'Boa! Resposta correta.' : `A resposta correta é ${answerLetter(question.answer)}.`}</p><p className="mt-3 text-[10px] font-semibold uppercase tracking-[.12em] text-slate-500">Comentário didático assistido por IA</p><p className="mt-1 text-sm leading-6 text-slate-300">{question.gabarito_comentado}</p>{question.ponto_de_atencao && <div className="mt-3 rounded-xl border border-amber-400/10 bg-amber-400/[0.035] p-3"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-amber-200">Ponto de atenção</p><p className="mt-1 text-xs leading-5 text-slate-400">{question.ponto_de_atencao}</p></div>}</div></div>
                 <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4"><Button size="sm" onClick={nextQuestion}><ArrowRight className="h-3.5 w-3.5" />Próxima questão</Button><Button size="sm" variant="secondary" onClick={() => onAskTutor(question)}><CircleHelp className="h-3.5 w-3.5" />Perguntar ao tutor</Button>{question.metadata && 'url_fonte' in question.metadata && question.metadata.url_fonte && <a href={question.metadata.url_fonte} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs text-cyan-300 hover:underline">Fonte original <ExternalLink className="h-3 w-3" /></a>}</div>
               </div>}
 
@@ -238,7 +272,7 @@ export function QuestionPractice({ initialSubject, userId, onAskTutor }: Questio
         </div>
       ) : (
         <Card className="grid min-h-72 place-items-center p-8 text-center">
-          <div className="max-w-md"><span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-400"><Search className="h-5 w-5" /></span><h2 className="mt-4 text-lg font-semibold text-white">Nenhuma questão nesta seleção</h2><p className="mt-2 text-sm leading-6 text-slate-500">{isSupabaseConfigured ? 'Use a pesquisa na web acima para priorizar questões reais e completar a lista com questões inéditas.' : 'As questões de demonstração estão disponíveis para algumas matérias. Escolha outra matéria ou volte mais tarde para novas questões.'}</p>{isSupabaseConfigured && <Button className="mt-5" onClick={generateQuestions} disabled={!userId}><Sparkles className="h-4 w-4" />Buscar questões</Button>}</div>
+          <div className="max-w-md"><span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-400"><Search className="h-5 w-5" /></span><h2 className="mt-4 text-lg font-semibold text-white">Nenhuma questão real nesta seleção</h2><p className="mt-2 text-sm leading-6 text-slate-500">{isSupabaseConfigured ? 'Escolha uma matéria e busque acima. Só exibimos questões com enunciado, alternativas, banca e gabarito oficial verificáveis; se não houver fonte suficiente, não mostramos uma questão artificial no lugar.' : 'A pesquisa de fontes oficiais não está conectada. Para manter este banco 100% real, não exibimos questões de demonstração.'}</p>{isSupabaseConfigured && <Button className="mt-5" onClick={generateQuestions} disabled={!userId || !subject || generating}><Search className="h-4 w-4" />Buscar questões oficiais</Button>}</div>
         </Card>
       )}
 

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireApprovedUser } from "../_shared/auth.ts";
+import { getGeminiApiKeys } from "../_shared/gemini.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -82,6 +83,38 @@ async function requestStream(model: string, apiKey: string, contents: Array<{ ro
   });
 }
 
+async function requestStreamWithFallback(
+  primaryModel: string,
+  fallbackModel: string,
+  apiKeys: string[],
+  contents: Array<{ role: "user" | "model"; parts: Array<{ text: string }> }>,
+  systemInstruction: string,
+) {
+  const models = [...new Set([primaryModel, fallbackModel].filter(Boolean))];
+  let lastResponse: Response | null = null;
+
+  for (const model of models) {
+    for (let index = 0; index < apiKeys.length; index += 1) {
+      let response: Response;
+      try {
+        response = await requestStream(model, apiKeys[index], contents, systemInstruction);
+      } catch (error) {
+        console.warn(`[TUTOR] Falha de rede com a chave ${index + 1} para ${model}; tentando contingência.`, error);
+        continue;
+      }
+      if (response.ok && response.body) {
+        if (index > 0) console.info(`[TUTOR] A chave principal falhou; a chave reserva ${index + 1} respondeu para ${model}.`);
+        return response;
+      }
+      const details = await response.clone().text().catch(() => "");
+      console.warn(`[TUTOR] Modelo ${model} falhou com a chave ${index + 1} (${response.status}); tentando contingência.`, details.slice(0, 300));
+      lastResponse = response;
+    }
+  }
+
+  return lastResponse ?? new Response("Gemini indisponível.", { status: 502 });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ error: "Método não permitido." }, 405);
@@ -92,8 +125,8 @@ serve(async (req) => {
     if (access.status === "pending") return jsonResponse({ error: "Seu cadastro está aguardando aprovação." }, 403);
     if (access.status === "unavailable") return jsonResponse({ error: "Não foi possível confirmar a liberação da sua conta." }, 503);
 
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) return jsonResponse({ error: "As credenciais do Tutor não estão configuradas no servidor." }, 503);
+    const apiKeys = getGeminiApiKeys();
+    if (!apiKeys.length) return jsonResponse({ error: "As credenciais do Tutor não estão configuradas no servidor." }, 503);
 
     const body = await req.json();
     const rawMessages = Array.isArray(body?.messages) ? body.messages : [];
@@ -121,16 +154,11 @@ serve(async (req) => {
     const primaryModel = Deno.env.get("GEMINI_MODEL") || "gemini-3.8-flash";
     const fallbackModel = Deno.env.get("GEMINI_FALLBACK_MODEL") || "gemini-3.5-flash-lite";
 
-    let upstream = await requestStream(primaryModel, apiKey, contents, systemInstruction);
-    if (!upstream.ok && fallbackModel && fallbackModel !== primaryModel) {
-      const firstError = await upstream.text().catch(() => "");
-      console.warn(`[TUTOR] Serviço principal indisponível (${upstream.status}); tentando alternativa.`, firstError.slice(0, 300));
-      upstream = await requestStream(fallbackModel, apiKey, contents, systemInstruction);
-    }
+    const upstream = await requestStreamWithFallback(primaryModel, fallbackModel, apiKeys, contents, systemInstruction);
     if (!upstream.ok || !upstream.body) {
-      const providerMessage = await upstream.text().catch(() => "");
+      const providerMessage = await upstream.clone().text().catch(() => "");
       console.error(`[TUTOR] Falha no streaming (${upstream.status}).`, providerMessage.slice(0, 500));
-      return jsonResponse({ error: "Não foi possível iniciar a resposta do Tutor. Confira a configuração e tente novamente." }, 502);
+      return jsonResponse({ error: "Não foi possível iniciar a resposta do Tutor. Confira as chaves Gemini e tente novamente." }, 502);
     }
 
     const encoder = new TextEncoder();
