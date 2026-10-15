@@ -1,6 +1,6 @@
 # Tutor PCPA — questões, simulados e revisão
 
-Aplicação de estudo para a Polícia Civil do Pará, com questões reais verificáveis, prática autoral por IA em modo separado, simulados, flashcards, caderno de erros e Tutor.
+Aplicação de estudo para a Polícia Civil do Pará, com geração unificada de questões reais verificáveis e itens autorais por IA, simulados, flashcards, caderno de erros e Tutor.
 
 ## Trilhas por cargo
 
@@ -18,8 +18,7 @@ A matriz versionada está em `supabase/data/pcpa-study-priority-matrix.v1.json`.
 ## Recursos
 
 - Banco de questões reais por matéria, tópico e dificuldade, com origem, gabarito, links e permissão de reprodução verificáveis.
-- Modo de questões autorais por IA, claramente identificado como não real e sem inserir itens no banco oficial.
-- Prática de múltipla escolha e itens Certo/Errado.
+- Um único fluxo na prática dirigida: busca questões reais verificadas primeiro e usa itens autorais de IA apenas para completar a quantidade solicitada, sem excedê-la. A origem é identificada junto a cada questão; itens de IA não entram no banco oficial, nas estatísticas reais nem no caderno de erros.
 - Simulados com pesos do cargo ativo, cronômetro, modo foco e revisão de respostas; o simulado nunca completa o acervo com itens de IA.
 - Flashcards com repetição espaçada e caderno de erros separados por trilha.
 - Estatísticas e progresso por matéria dentro da trilha selecionada.
@@ -28,13 +27,13 @@ A matriz versionada está em `supabase/data/pcpa-study-priority-matrix.v1.json`.
 
 ## Política do banco de questões
 
-O banco oficial contém somente questões reais com origem, gabarito e permissão de reprodução verificáveis; não se completam lacunas por inferência ou IA. O texto integral só é copiado quando há permissão explícita para fins didáticos; sem essa evidência, o catálogo guarda apenas metadados e links oficiais.
+O banco oficial contém somente questões reais com origem, gabarito e permissão de reprodução verificáveis; não se completam lacunas por inferência ou IA. O texto integral só é copiado quando há permissão explícita para fins didáticos; sem essa evidência, o sistema mantém internamente apenas metadados e links oficiais, sem exibir um catálogo independente na prática dirigida.
 
-Há também um modo de prática por IA, separado do banco real. A função recebe o cargo ativo, a matéria e o tópico do edital — nunca texto de prova — e instrui o modelo a criar itens genuinamente originais sem copiar, reconstruir ou adaptar de perto questões específicas. Cada item é marcado como “IA · não é real”, não recebe metadados de concurso, não é salvo no banco oficial e não altera o histórico de questões reais. Como todo conteúdo de IA, confira explicações e respostas antes de memorizar.
+Na prática dirigida há um único fluxo: questões reais com origem, gabarito e permissão verificados são buscadas primeiro; itens autorais de IA aparecem na mesma sequência apenas para completar a quantidade solicitada, sem excedê-la. Cada questão mostra sua procedência e referências oficiais somente junto ao item correspondente. A função recebe cargo, matéria e tópico do edital — nunca texto de prova — e instrui o modelo a não copiar, reconstruir nem adaptar de perto questões específicas. Itens de IA são marcados como “IA · não é real”, não recebem metadados de concurso, não são salvos no banco oficial e não alteram estatísticas ou caderno de erros reais. Simulados continuam usando apenas questões reais verificadas. Como todo conteúdo de IA, confira explicações e respostas antes de memorizar.
 
 O arquivo versionado `supabase/data/pc-question-bank.v1.json` é consultado antes da web. Se já houver questões adequadas, a busca web não é acionada. Quando necessário, a aplicação reaproveita também questões licenciadas já persistidas e pesquisa na web para preencher lacunas. A deduplicação usa um fingerprint estável da prova e da questão. A busca exibe progresso durante a consulta.
 
-A versão atual do arquivo reúne referências de concursos de Polícias Civis brasileiras e 11 questões integrais do PCDF Escrivão 2021, cujo documento declara permissão de reprodução didática. As outras referências permanecem como metadados e URLs; o fato de uma prova estar em site oficial não é tratado como autorização para copiar seu texto. As questões C/E mantêm as opções Certo e Errado e o gabarito oficial.
+A versão atual do arquivo reúne referências de concursos de Polícias Civis brasileiras e 11 questões integrais do PCDF Escrivão 2021, cujo documento declara permissão de reprodução didática. As outras referências permanecem como metadados e URLs internos e só são exibidas junto à questão correspondente; o fato de uma prova estar em site oficial não é tratado como autorização para copiar seu texto. As questões C/E mantêm as opções Certo e Errado e o gabarito oficial.
 
 ## Banco de dados e desenvolvimento
 

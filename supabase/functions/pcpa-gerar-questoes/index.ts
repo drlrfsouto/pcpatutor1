@@ -170,29 +170,6 @@ interface SearchSource extends TavilyResult {
   license_terms: string | null;
 }
 
-interface SourceReference {
-  id: string;
-  police_civil: string;
-  uf: string;
-  contest: string;
-  bank: string | null;
-  cargo: string | null;
-  notice_year: number | null;
-  application_year: number | null;
-  application_date: string | null;
-  application_date_evidence_url: string | null;
-  caderno: string | null;
-  question_format: "multipla_escolha" | "certo_errado" | "misto" | null;
-  question_url: string | null;
-  answer_url: string | null;
-  candidate_answer_url: string | null;
-  official_contest_url: string | null;
-  reproduction_permission: "explicit" | "not_verified";
-  catalog_status: string;
-  verification_note: string;
-  license_terms: string | null;
-  license_evidence_url: string | null;
-}
 
 const LOCAL_QUESTION_BANK = localQuestionBankJson as LocalQuestionBank;
 
@@ -539,16 +516,14 @@ async function searchTavily(query: string, apiKey: string) {
 }
 
 async function collectSearchSources(queries: string[], apiKey?: string) {
-  if (!apiKey) return { sources: [] as SearchSource[], successfulQueries: [] as string[] };
+  if (!apiKey) return { sources: [] as SearchSource[] };
   const settled = await Promise.allSettled(queries.map((query) => searchTavily(query, apiKey)));
   const byUrl = new Map<string, TavilyResult>();
-  const successfulQueries: string[] = [];
   settled.forEach((result, index) => {
     if (result.status !== "fulfilled") {
       console.warn(`[BUSCA WEB] Consulta ${index + 1} não concluiu.`, result.reason);
       return;
     }
-    successfulQueries.push(queries[index]);
     for (const item of result.value) {
       if (!item || typeof item !== "object") continue;
       const row = item as Record<string, unknown>;
@@ -591,7 +566,7 @@ async function collectSearchSources(queries: string[], apiKey?: string) {
       license_terms: licenseTerms,
     };
   });
-  return { sources, successfulQueries };
+  return { sources };
 }
 
 async function postQuestionModel(model: string, apiKey: string, prompt: string) {
@@ -752,34 +727,6 @@ function normalizeQuestion(
   };
 }
 
-function toSourceReference(source: LocalExamSource): SourceReference {
-  const licenseTerms = source.reproduction_permission === "explicit"
-    ? explicitReproductionTerms(source.license_terms ?? "")
-    : null;
-  return {
-    id: source.id,
-    police_civil: source.police_civil,
-    uf: source.uf,
-    contest: source.contest,
-    bank: source.bank ?? null,
-    cargo: source.cargo ?? null,
-    notice_year: Number.isInteger(source.notice_year) ? source.notice_year! : null,
-    application_year: Number.isInteger(source.application_year) ? source.application_year! : null,
-    application_date: source.application_date ?? null,
-    application_date_evidence_url: source.application_date_evidence_url ?? null,
-    caderno: source.caderno ?? null,
-    question_format: source.question_format ?? null,
-    question_url: source.question_url ?? null,
-    answer_url: source.answer_url ?? null,
-    candidate_answer_url: source.candidate_answer_url ?? null,
-    official_contest_url: source.official_contest_url ?? null,
-    reproduction_permission: licenseTerms ? "explicit" : "not_verified",
-    catalog_status: source.catalog_status,
-    verification_note: source.verification_note,
-    license_terms: licenseTerms,
-    license_evidence_url: licenseTerms ? source.license_evidence_url ?? source.question_url ?? null : null,
-  };
-}
 
 function sourceUrlTitle(url: string | null | undefined) {
   if (!url) return "Documento oficial";
@@ -1016,7 +963,6 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const request = { roleId, subject, topic, difficulty, count };
-    const catalogReferences = LOCAL_QUESTION_BANK.exam_sources.map(toSourceReference);
 
     // Prioridade 1: o arquivo versionado. A seguir, reutilizamos questões
     // licenciadas já persistidas, para não repetir buscas web desnecessárias.
@@ -1070,7 +1016,6 @@ serve(async (req) => {
 
     let webSearched = false;
     let searchAvailable = true;
-    let searchQueriesUsed: string[] = [];
     let webSources: SearchSource[] = [];
     let webQuestionCount = 0;
     let webMessage = "";
@@ -1083,7 +1028,6 @@ serve(async (req) => {
         try {
           const webSearch = await collectSearchSources(buildSearchQueries({ roleId, subject, topic }), tavilyKey);
           webSources = webSearch.sources;
-          searchQueriesUsed = webSearch.successfulQueries;
           searchAvailable = webSources.length > 0;
         } catch (error) {
           searchAvailable = false;
@@ -1184,15 +1128,6 @@ serve(async (req) => {
     });
     const localQuestionCount = preparedQuestions.filter((question) => localFingerprints.has(question.question_fingerprint)).length;
     const existingDatabaseQuestionCount = preparedQuestions.filter((question) => Boolean(question.id) && !localFingerprints.has(question.question_fingerprint)).length;
-    const localSourceHosts = preparedQuestions
-      .filter((question) => localFingerprints.has(question.question_fingerprint))
-      .map((question) => {
-        try { return new URL(String(question.metadata.url_fonte)).hostname.replace(/^www\\./, ""); } catch { return ""; }
-      });
-    const webSourceHosts = webSources.map((source) => {
-      try { return new URL(source.url).hostname.replace(/^www\\./, ""); } catch { return ""; }
-    });
-    const sourcesConsulted = [...new Set([...localSourceHosts, ...webSourceHosts].filter(Boolean))];
     const searchSummary = {
       total_found: savedQuestions.length,
       real_questions: savedQuestions.length,
@@ -1201,10 +1136,6 @@ serve(async (req) => {
       web_questions: Math.min(webQuestionCount, Math.max(0, count - localQuestionCount - existingDatabaseQuestionCount)),
       web_searched: webSearched,
       search_available: searchAvailable,
-      search_queries_used: searchQueriesUsed,
-      sources_consulted: sourcesConsulted,
-      catalog_version: LOCAL_QUESTION_BANK.catalog_version,
-      catalog_references: catalogReferences,
     };
 
     let message = "";

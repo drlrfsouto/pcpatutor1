@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
   CheckCircle2,
-  ChevronDown,
   CircleHelp,
   ExternalLink,
   LoaderCircle,
@@ -40,7 +39,7 @@ import {
 import { recordAttempt } from '@/lib/attempts';
 import { saveDemoAttempt } from '@/lib/local-storage';
 import { answerLetter, questionAnswerDisplay, questionExplanationLabel, questionOptionDetails } from '@/lib/utils';
-import { filterVerifiedRealQuestions } from '@/lib/question-provenance';
+import { filterVerifiedRealQuestions, isVerifiedRealQuestion } from '@/lib/question-provenance';
 import { useWrongAnswerTracker } from '@/hooks/useWrongAnswerTracker';
 
 const DIFFICULTIES: { value: QuestionDifficulty; label: string }[] = [
@@ -49,58 +48,17 @@ const DIFFICULTIES: { value: QuestionDifficulty; label: string }[] = [
   { value: 'dificil', label: 'Difícil' },
 ];
 
-type PracticeMode = 'real' | 'ai';
-type AIGeneratedFormat = 'mista' | 'multipla_escolha' | 'certo_errado';
-
-const SEARCH_STAGES = [
-  'Consultando o acervo local versionado…',
-  'Verificando se o acervo já cobre a matéria e o tópico…',
-  'Buscando novas questões em fontes oficiais, se necessário…',
-  'Conferindo permissão de reprodução, origem e gabarito…',
+const GENERATION_STAGES = [
+  'Consultando primeiro as questões reais autorizadas…',
+  'Conferindo origem, gabarito e permissão de reprodução…',
+  'Buscando fontes oficiais quando necessário…',
+  'Criando itens autorais por IA para completar a quantidade…',
+  'Organizando as questões e identificando a origem de cada uma…',
 ];
-
-const AI_STAGES = [
-  'Preparando uma prática autoral por IA…',
-  'Criando itens novos a partir da matéria e do tópico…',
-  'Validando formato e gabarito didático…',
-];
-
-interface CatalogReference {
-  id: string;
-  police_civil: string;
-  uf: string;
-  contest: string;
-  bank: string | null;
-  cargo: string | null;
-  notice_year: number | null;
-  application_year: number | null;
-  application_date: string | null;
-  application_date_evidence_url: string | null;
-  caderno: string | null;
-  question_format: 'multipla_escolha' | 'certo_errado' | 'misto' | null;
-  question_url: string | null;
-  answer_url: string | null;
-  candidate_answer_url: string | null;
-  official_contest_url: string | null;
-  reproduction_permission: 'explicit' | 'not_verified';
-  catalog_status: string;
-  verification_note: string;
-  license_terms: string | null;
-  license_evidence_url: string | null;
-}
 
 interface SearchSummary {
-  mode?: PracticeMode;
   ai_generated_questions?: number;
   real_questions?: number;
-  search_available?: boolean;
-  sources_consulted?: string[];
-  local_bank_questions?: number;
-  existing_database_questions?: number;
-  web_questions?: number;
-  web_searched?: boolean;
-  catalog_version?: string;
-  catalog_references?: CatalogReference[];
   message?: string;
 }
 
@@ -133,8 +91,19 @@ function isAIGeneratedQuestion(value: unknown, subject: string, difficulty: stri
     ['A', 'B', 'C', 'D', 'E'].includes(answerLetter(question.answer));
 }
 
-function filterAIGeneratedQuestions(values: unknown[], subject: string, difficulty: string) {
-  return values.filter((value): value is PcpaQuestion => isAIGeneratedQuestion(value, subject, difficulty));
+function filterAIGeneratedQuestions(values: unknown[], subject: string, difficulty: string, selectedTopic = 'geral') {
+  return values
+    .filter((value): value is PcpaQuestion => isAIGeneratedQuestion(value, subject, difficulty))
+    .filter((question) => selectedTopic === 'geral' || question.topic === selectedTopic);
+}
+
+function shuffleQuestions(values: PcpaQuestion[]) {
+  const shuffled = [...values];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
 }
 
 async function getFunctionErrorMessage(error: unknown): Promise<string | undefined> {
@@ -163,9 +132,7 @@ interface QuestionPracticeProps {
 
 export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTutor }: QuestionPracticeProps) {
   const [subject, setSubject] = useState<string>(initialSubject ?? '');
-  const [practiceMode, setPracticeMode] = useState<PracticeMode>('real');
-  const [aiQuestionFormat, setAIQuestionFormat] = useState<AIGeneratedFormat>('mista');
-  const [aiQuestions, setAIQuestions] = useState<PcpaQuestion[]>([]);
+  const [sessionQuestions, setSessionQuestions] = useState<PcpaQuestion[]>([]);
   const [difficulty, setDifficulty] = useState<string>('');
   const [topic, setTopic] = useState('geral');
   const [questionCount, setQuestionCount] = useState(5);
@@ -182,9 +149,8 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
   const lastInitialSubject = useRef(initialSubject);
   const studyRole = getStudyRole(studyRoleId);
   const roleSubjects = getSubjectsForRole(studyRoleId);
-  const roleSubjectNames = roleSubjects.map((item) => item.name);
   const selectedSubjectProfile = getRoleSubject(studyRoleId, subject);
-  const progressStages = practiceMode === 'ai' ? AI_STAGES : SEARCH_STAGES;
+  const progressStages = GENERATION_STAGES;
 
   useEffect(() => {
     if (initialSubject && lastInitialSubject.current !== initialSubject) {
@@ -207,23 +173,7 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
     return () => window.clearInterval(timer);
   }, [generating, progressStages.length]);
 
-  const questionsQuery = useQuery({
-    enabled: practiceMode === 'real' && isSupabaseConfigured && roleSubjectNames.length > 0,
-    queryKey: ['questions', studyRoleId, subject, topic, difficulty],
-    queryFn: async (): Promise<PcpaQuestion[]> => {
-      if (!isSupabaseConfigured || !roleSubjectNames.length) return [];
-      let query = supabase.from('pcpa_questions').select('*').eq('source', 'concurso_real').in('subject', roleSubjectNames).order('created_at', { ascending: false }).limit(100);
-      if (subject && isSubjectInRole(studyRoleId, subject)) query = query.eq('subject', subject);
-      if (topic !== 'geral') query = query.eq('topic', topic);
-      if (difficulty) query = query.eq('difficulty', difficulty);
-      const { data, error } = await query;
-      if (error) throw error;
-      return filterVerifiedRealQuestions((data ?? []) as unknown as PcpaQuestion[])
-        .filter((question) => isSubjectInRole(studyRoleId, question.subject))
-        .filter((question) => topic === 'geral' || question.topic === topic);
-    },
-  });
-  const questions = practiceMode === 'ai' ? aiQuestions : questionsQuery.data ?? [];
+  const questions = sessionQuestions;
   const question = questions.length ? questions[questionIndex % questions.length] : undefined;
   const correct = question ? answerLetter(question.answer) === answerLetter(selectedAnswer) : false;
 
@@ -231,18 +181,17 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
     setQuestionIndex(0);
     setHasAnswered(false);
     setSelectedAnswer('');
-    setAIQuestions([]);
+    setSessionQuestions([]);
     setSearchSummary(null);
     setQuestionStartedAt(Date.now());
-  }, [subject, topic, difficulty, practiceMode]);
+  }, [subject, topic, difficulty]);
 
   const answerOptions = useMemo(() => question
     ? question.options.map((option, index) => ({ ...questionOptionDetails(question.type, option, index), original: option }))
     : [], [question]);
 
-  function clearAIGeneratedSession() {
-    if (practiceMode !== 'ai') return;
-    setAIQuestions([]);
+  function clearPracticeSession() {
+    setSessionQuestions([]);
     setSearchSummary(null);
     setQuestionIndex(0);
     setHasAnswered(false);
@@ -251,7 +200,7 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
 
   async function generateQuestions() {
     if (!isSupabaseConfigured) {
-      toast.error('Prática indisponível', { description: 'Conecte o Supabase para usar as funções protegidas do aplicativo.' });
+      toast.error('Prática indisponível', { description: 'Conecte o Supabase para usar a geração protegida de questões.' });
       return;
     }
     if (!userId) {
@@ -262,90 +211,103 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
       toast.error('Escolha uma matéria da trilha ativa', { description: `Selecione uma matéria prevista para ${studyRole?.label ?? 'o cargo'} no edital ${studyRole?.notice ?? 'selecionado'}.` });
       return;
     }
+
     setGenerating(true);
     setSearchStageIndex(0);
     setSearchSummary(null);
+    setSessionQuestions([]);
     try {
-      if (practiceMode === 'ai') {
-        const { data, error } = await supabase.functions.invoke('pcpa-gerar-questoes-autorais', {
-          body: {
-            role: studyRoleId,
-            subject,
-            topic: topic.trim() || 'geral',
-            difficulty: difficulty || 'intermediaria',
-            count: questionCount,
-            format: aiQuestionFormat,
-          },
+      let verifiedQuestions: PcpaQuestion[] = [];
+      let realSearchSummary: { search_available?: boolean } | undefined;
+      let realSearchMessage = '';
+      let searchAvailable = false;
+      let realSearchIssue = '';
+
+      try {
+        const { data, error } = await supabase.functions.invoke('pcpa-gerar-questoes', {
+          body: { role: studyRoleId, subject, topic: topic.trim() || 'geral', difficulty: difficulty || 'intermediaria', count: questionCount },
         });
         if (error) throw error;
-        const result = data as { success?: boolean; error?: string; questions?: unknown[]; message?: string };
-        if (!result?.success) throw new Error(result?.error || 'A geração autoral não foi concluída.');
-        const generatedQuestions = filterAIGeneratedQuestions(
-          Array.isArray(result.questions) ? result.questions : [],
-          subject,
-          difficulty || 'intermediaria',
-        ).slice(0, questionCount);
-        setAIQuestions(generatedQuestions);
-        setSearchSummary({
-          mode: 'ai',
-          ai_generated_questions: generatedQuestions.length,
-          message: result.message || `${generatedQuestions.length} item(ns) autoral(is) por IA. Não são questões reais e não entram no banco oficial.`,
-        });
-        setQuestionIndex(0);
-        setHasAnswered(false);
-        setSelectedAnswer('');
-        if (generatedQuestions.length) {
-          toast.success(`${generatedQuestions.length} questão(ões) autoral(is) de IA gerada(s).`);
-        } else {
-          toast.info('A IA não retornou itens novos em formato validável. O banco real permaneceu inalterado.');
-        }
-        return;
+        const result = data as { success?: boolean; error?: string; message?: string; questions?: PcpaQuestion[]; search_summary?: { search_available?: boolean } };
+        if (!result?.success) throw new Error(result?.error || 'A busca não encontrou questões reais verificáveis.');
+        realSearchSummary = result.search_summary;
+        realSearchMessage = typeof result.message === 'string' ? result.message : '';
+        verifiedQuestions = filterVerifiedRealQuestions(Array.isArray(result.questions) ? result.questions : [])
+          .filter((item) => item.subject === subject && isSubjectInRole(studyRoleId, item.subject))
+          .filter((item) => topic === 'geral' || item.topic === topic)
+          .filter((item) => !difficulty || item.difficulty === difficulty)
+          .slice(0, questionCount);
+        searchAvailable = typeof realSearchSummary?.search_available === 'boolean'
+          ? realSearchSummary.search_available
+          : verifiedQuestions.length > 0;
+      } catch (error) {
+        realSearchIssue = await getFunctionErrorMessage(error) || 'A busca de questões reais está indisponível.';
       }
 
-      const { data, error } = await supabase.functions.invoke('pcpa-gerar-questoes', {
-        body: { role: studyRoleId, subject, topic: topic.trim() || 'geral', difficulty: difficulty || 'intermediaria', count: questionCount },
-      });
-      if (error) throw error;
-      const result = data as { success?: boolean; error?: string; questions?: PcpaQuestion[]; search_summary?: SearchSummary; message?: string };
-      if (!result?.success) throw new Error(result?.error || 'A busca não encontrou questões oficiais verificáveis.');
+      const remainingCount = Math.max(0, questionCount - verifiedQuestions.length);
+      let generatedQuestions: PcpaQuestion[] = [];
+      let aiGenerationIssue = '';
+      if (remainingCount > 0) {
+        try {
+          const { data, error } = await supabase.functions.invoke('pcpa-gerar-questoes-autorais', {
+            body: {
+              role: studyRoleId,
+              subject,
+              topic: topic.trim() || 'geral',
+              difficulty: difficulty || 'intermediaria',
+              count: remainingCount,
+              format: 'mista',
+            },
+          });
+          if (error) throw error;
+          const result = data as { success?: boolean; error?: string; questions?: unknown[] };
+          if (!result?.success) throw new Error(result?.error || 'A geração autoral não foi concluída.');
+          generatedQuestions = filterAIGeneratedQuestions(
+            Array.isArray(result.questions) ? result.questions : [],
+            subject,
+            difficulty || 'intermediaria',
+            topic,
+          ).slice(0, remainingCount);
+        } catch (error) {
+          aiGenerationIssue = await getFunctionErrorMessage(error) || 'A geração autoral não pôde ser concluída.';
+        }
+      }
 
-      // Nunca usamos itens de IA como se fossem questões reais, inclusive se
-      // uma versão antiga da Edge Function ainda os retornasse como fallback.
-        const verifiedQuestions = filterVerifiedRealQuestions(Array.isArray(result.questions) ? result.questions : [])
-          .filter((question) => question.subject === subject && isSubjectInRole(studyRoleId, question.subject));
-      const searchAvailable = typeof result.search_summary?.search_available === 'boolean'
-        ? result.search_summary.search_available
-        : verifiedQuestions.length > 0;
-      const safeRealMessage = verifiedQuestions.length > 0
-        ? `${verifiedQuestions.length} questão(ões) reais com proveniência oficial e permissão verificadas. Itens de IA não são usados neste modo.`
-        : searchAvailable
-        ? 'As fontes consultadas não comprovaram enunciado, alternativas, gabarito e permissão suficientes. Nenhuma questão de IA foi adicionada ao banco real.'
-        : 'A busca em fontes oficiais está indisponível ou não encontrou itens verificáveis. Nenhuma questão de IA foi adicionada ao banco real.';
+      const session = shuffleQuestions([...verifiedQuestions, ...generatedQuestions]).slice(0, questionCount);
+      const realMessage = verifiedQuestions.length
+        ? `${verifiedQuestions.length} questão(ões) real(is) com origem, gabarito e permissão verificados.`
+        : realSearchMessage || (searchAvailable
+          ? 'As fontes consultadas não comprovaram enunciado, gabarito e permissão suficientes para transcrever questões reais.'
+          : `A busca não encontrou questões reais verificáveis${realSearchIssue ? ` (${realSearchIssue})` : ''}.`);
+      const aiMessage = generatedQuestions.length
+        ? `${generatedQuestions.length} item(ns) original(is) por IA completaram a quantidade solicitada.`
+        : remainingCount > 0
+        ? `A IA não conseguiu completar a sessão${aiGenerationIssue ? ` (${aiGenerationIssue})` : ''}.`
+        : 'A quantidade solicitada foi preenchida com questões reais verificadas; não foi preciso gerar itens de IA.';
+      const completionMessage = session.length < questionCount
+        ? ` Sessão parcial: ${session.length} de ${questionCount} item(ns) disponíveis.`
+        : '';
+
+      setSessionQuestions(session);
       setSearchSummary({
-        ...result.search_summary,
-        mode: 'real',
         real_questions: verifiedQuestions.length,
-        search_available: searchAvailable,
-        // Ignore legacy/server messages and counts: an older deployment may claim AI fallback results.
-        message: safeRealMessage,
+        ai_generated_questions: generatedQuestions.length,
+        message: `${realMessage} ${aiMessage}${completionMessage} A origem aparece em cada questão; itens de IA não são salvos no banco oficial nem registrados como desempenho real.`,
       });
       await queryClient.invalidateQueries({ queryKey: ['questions'] });
       setQuestionIndex(0);
       setHasAnswered(false);
       setSelectedAnswer('');
-      if (verifiedQuestions.length > 0) {
-        toast.success(`${verifiedQuestions.length} questão(ões) real(is) com procedência oficial verificadas.`);
-      } else if (searchAvailable) {
-        toast.info('As fontes consultadas não permitiram confirmar enunciado, alternativas e gabarito oficial. Nenhuma questão artificial foi incluída.');
+      setQuestionStartedAt(Date.now());
+      if (session.length) {
+        toast.success(`Prática pronta: ${verifiedQuestions.length} questão(ões) real(is) + ${generatedQuestions.length} autoral(is) por IA.`);
       } else {
-        toast.info('A busca em fontes oficiais está indisponível ou sem configuração. Nenhuma questão artificial foi incluída.');
+        toast.info('Não foi possível gerar questões para esta seleção. Confira a busca oficial e a configuração do serviço e tente novamente.');
       }
     } catch (error) {
-      const diagnostic = practiceMode === 'ai' ? await getFunctionErrorMessage(error) : undefined;
-      toast.error(practiceMode === 'ai' ? 'A geração autoral não pôde ser concluída' : 'A busca não pôde ser concluída', {
-        description: diagnostic || (practiceMode === 'ai'
-          ? 'Tente novamente. Se o problema persistir, confirme se a Edge Function foi publicada e se o acesso está aprovado.'
-          : 'Tente novamente em instantes. Nenhuma questão criada por IA será usada como substituta.'),
+      const diagnostic = await getFunctionErrorMessage(error);
+      toast.error('As questões não puderam ser geradas', {
+        description: diagnostic || 'Tente novamente. Itens sem origem, gabarito e permissão comprovados não serão tratados como questões reais.',
       });
     } finally {
       setGenerating(false);
@@ -354,8 +316,12 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
 
   async function submitAnswer() {
     if (!question || !selectedAnswer || hasAnswered || submitting) return;
-    if (practiceMode === 'ai') {
+    if (question.source === 'ai_generated') {
       setHasAnswered(true);
+      return;
+    }
+    if (!isVerifiedRealQuestion(question)) {
+      toast.error('A questão não tem procedência verificável', { description: 'Ela não será registrada como questão real.' });
       return;
     }
     setSubmitting(true);
@@ -391,31 +357,27 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
     setQuestionStartedAt(Date.now());
   }
 
-  const isQuestionLoading = practiceMode === 'real' && questionsQuery.isLoading;
-
   return (
     <div className="animate-float-in mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-mint"><Target className="h-3.5 w-3.5" /> Prática direcionada</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{practiceMode === 'ai' ? 'Prática autoral por IA' : 'Banco de questões'}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">{practiceMode === 'ai' ? 'Itens novos para estudo, identificados como gerados por IA; não são questões reais e não entram no banco oficial.' : 'Pratique por matéria, entenda cada alternativa e transforme seus erros em revisão inteligente.'}</p><p className="mt-2 text-[11px] font-medium text-cyan-200/80">{studyRole?.label} · Edital {studyRole?.notice} · {roleSubjects.length} matérias separadas para esta trilha</p></div>
-        <div className="flex items-center gap-2 rounded-xl border border-line bg-white/[0.025] px-3 py-2 text-xs text-slate-400"><span className={`h-2 w-2 rounded-full ${!isSupabaseConfigured ? 'bg-amber-300' : practiceMode === 'ai' ? 'bg-violet-300' : 'bg-mint'}`} />{!isSupabaseConfigured ? 'Supabase desconectado' : practiceMode === 'ai' ? 'Modo IA separado — não são questões reais' : 'Oficiais com licença verificada'}</div>
+        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-mint"><Target className="h-3.5 w-3.5" /> Prática direcionada</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Gerar questões</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Questões reais verificadas e itens autorais por IA aparecem na mesma sequência; cada questão informa sua origem.</p><p className="mt-2 text-[11px] font-medium text-cyan-200/80">{studyRole?.label} · Edital {studyRole?.notice} · {roleSubjects.length} matérias separadas para esta trilha</p></div>
+        <div className="flex items-center gap-2 rounded-xl border border-line bg-white/[0.025] px-3 py-2 text-xs text-slate-400"><span className={`h-2 w-2 rounded-full ${!isSupabaseConfigured ? 'bg-amber-300' : 'bg-mint'}`} />{!isSupabaseConfigured ? 'Supabase desconectado' : 'Origem indicada em cada questão'}</div>
       </div>
 
       <Card>
         <div className="flex items-start gap-3 border-b border-white/[0.055] p-5 md:px-6">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cyan-400/10 text-cyan-300"><Search className="h-4 w-4" /></span>
-          <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold text-slate-100">Monte sua sessão</h2><p className="mt-1 text-xs text-slate-500">{practiceMode === 'real' ? 'Consultamos primeiro o acervo local versionado; a busca web só preenche lacunas. Texto integral só entra com permissão explícita e origem/gabarito verificáveis.' : 'A função envia cargo ativo, matéria e tópico do edital, sem texto de questão real, e instrui a IA a criar itens originais sem copiar ou adaptar questões específicas. Eles são identificados como não reais e não entram no banco oficial.'}</p></div>
-          <Badge variant="secondary" className="hidden gap-1.5 sm:inline-flex"><ShieldCheck className={`h-3 w-3 ${practiceMode === 'ai' ? 'text-violet-200' : 'text-emerald-200'}`} />{practiceMode === 'ai' ? 'Prática autoral separada' : 'Acervo + fontes oficiais'}</Badge>
+          <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold text-slate-100">Defina o que quer praticar</h2><p className="mt-1 text-xs text-slate-500">Buscamos questões reais com origem, gabarito e permissão verificados; a IA cria itens originais apenas para completar a quantidade. A procedência aparece na própria questão. Referências sem item reproduzível não viram questões.</p></div>
+          <Badge variant="secondary" className="hidden gap-1.5 sm:inline-flex"><ShieldCheck className="h-3 w-3 text-emerald-200" />Origem por questão</Badge>
         </div>
         <CardContent className="grid gap-3 pt-5 sm:grid-cols-2 xl:grid-cols-3 xl:items-end">
-          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Matéria — {studyRole?.label}</span><select className="field-select" value={subject} disabled={generating} onChange={(event) => { setSubject(event.target.value); setTopic('geral'); }}><option value="">Todas as matérias desta trilha</option>{roleSubjects.map((item) => { const profile = getRoleSubject(studyRoleId, item.name); const share = studyRole && profile ? Math.round(profile.points / studyRole.total_points * 100) : 0; return <option key={item.name} value={item.name}>{item.name} · {profile ? getPriorityLabel(profile.relative_priority) : ''} · {share}%</option>; })}</select></label>
-          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Modo</span><select className="field-select" value={practiceMode} disabled={generating} onChange={(event) => { setPracticeMode(event.target.value as PracticeMode); setSearchSummary(null); setQuestionIndex(0); setHasAnswered(false); setSelectedAnswer(''); }}><option value="real">Questões reais verificadas</option><option value="ai">Prática autoral com IA — não real</option></select></label>
-          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Tópico do edital</span><select className="field-select" value={topic} disabled={generating || !subject} onChange={(event) => { setTopic(event.target.value); clearAIGeneratedSession(); }}><option value="geral">Programa completo da matéria</option>{selectedSubjectProfile?.topics.map((item) => <option key={item.name} value={item.name}>{item.name} · prioridade {getPriorityLabel(item.relative_priority).toLowerCase()}</option>)}</select></label>
+          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Matéria — {studyRole?.label}</span><select className="field-select" value={subject} disabled={generating} onChange={(event) => { setSubject(event.target.value); setTopic('geral'); }}><option value="">Selecione uma matéria desta trilha</option>{roleSubjects.map((item) => { const profile = getRoleSubject(studyRoleId, item.name); const share = studyRole && profile ? Math.round(profile.points / studyRole.total_points * 100) : 0; return <option key={item.name} value={item.name}>{item.name} · {profile ? getPriorityLabel(profile.relative_priority) : ''} · {share}%</option>; })}</select></label>
+          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Tópico do edital</span><select className="field-select" value={topic} disabled={generating || !subject} onChange={(event) => { setTopic(event.target.value); clearPracticeSession(); }}><option value="geral">Programa completo da matéria</option>{selectedSubjectProfile?.topics.map((item) => <option key={item.name} value={item.name}>{item.name} · prioridade {getPriorityLabel(item.relative_priority).toLowerCase()}</option>)}</select></label>
           <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Dificuldade</span><select className="field-select" value={difficulty} disabled={generating} onChange={(event) => setDifficulty(event.target.value)}><option value="">Todas</option>{DIFFICULTIES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          {practiceMode === 'ai' && <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Formato dos itens</span><select className="field-select" value={aiQuestionFormat} disabled={generating} onChange={(event) => { setAIQuestionFormat(event.target.value as AIGeneratedFormat); clearAIGeneratedSession(); }}><option value="mista">Misto</option><option value="multipla_escolha">Múltipla escolha</option><option value="certo_errado">Certo ou Errado</option></select></label>}
-          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Questões</span><select className="field-select" value={questionCount} disabled={generating} onChange={(event) => { setQuestionCount(Number(event.target.value)); clearAIGeneratedSession(); }}><option value={5}>5</option><option value={10}>10</option><option value={15}>15</option><option value={20}>20</option></select></label>
-          <Button onClick={generateQuestions} disabled={generating || !isSupabaseConfigured || !userId || !subject} className="w-full xl:min-w-40">{generating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}{generating ? practiceMode === 'ai' ? 'Gerando itens autorais…' : 'Consultando o acervo…' : practiceMode === 'ai' ? 'Gerar prática autoral' : 'Consultar acervo e buscar'}</Button>
-          {!isSupabaseConfigured && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-3">Conecte o Supabase para usar a busca oficial ou a prática autoral protegida.</p>}
-          {isSupabaseConfigured && !userId && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-3">Entre com uma conta aprovada para consultar o acervo ou gerar prática autoral. A geração por IA não salva itens no banco oficial.</p>}
+          <label className="block"><span className="mb-1.5 block text-[11px] font-semibold text-slate-400">Questões</span><select className="field-select" value={questionCount} disabled={generating} onChange={(event) => { setQuestionCount(Number(event.target.value)); clearPracticeSession(); }}><option value={5}>5</option><option value={10}>10</option><option value={15}>15</option><option value={20}>20</option></select></label>
+          <Button onClick={generateQuestions} disabled={generating || !isSupabaseConfigured || !userId || !subject} className="w-full xl:min-w-40">{generating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}{generating ? 'Gerando questões…' : 'Gerar questões'}</Button>
+          {!isSupabaseConfigured && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-3">Conecte o Supabase para consultar as fontes oficiais e gerar itens autorais com segurança. A chave de IA permanece no servidor.</p>}
+          {isSupabaseConfigured && !userId && <p className="text-[10px] leading-4 text-slate-500 sm:col-span-2 xl:col-span-3">Entre com uma conta aprovada para gerar questões. A origem e o tipo de cada item serão indicados na própria questão.</p>}
         </CardContent>
         {selectedSubjectProfile && <div className="border-t border-white/[0.05] px-5 py-3 md:px-6"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><span className="font-semibold text-cyan-200">Prioridade {getPriorityLabel(selectedSubjectProfile.relative_priority)}</span><span className="text-slate-500">{selectedSubjectProfile.question_count} questões · {selectedSubjectProfile.points} pontos no edital</span><span className="text-slate-500">Tópicos ordenados como orientação relativa, não previsão</span></div><p className="mt-2 text-xs leading-5 text-slate-400">Escopo do edital: {selectedSubjectProfile.scope_summary}</p></div>}
       </Card>
@@ -425,47 +387,19 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
           <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan-200/15 bg-cyan-300/[0.08] text-cyan-200"><span className="absolute inset-0 rounded-xl bg-cyan-300/10 animate-pulse" /><LoaderCircle className="relative h-5 w-5 animate-spin" /></span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-cyan-100">{progressStages[searchStageIndex]}</p>
-            <p className="mt-1 text-xs leading-5 text-slate-400">{practiceMode === 'ai' ? 'A função envia cargo, matéria e tópico do edital, sem textos de prova, e instrui a IA a criar itens originais. Eles ficam neste modo separado e não são salvos no banco oficial.' : 'Primeiro conferimos o acervo versionado. Só pesquisamos a web se faltarem itens; texto não licenciado fica apenas como metadado e link oficial.'}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-400">Consultamos o acervo versionado e verificamos origem, gabarito e permissão. Se faltar quantidade, buscamos fontes oficiais e a IA cria itens originais somente para completar a sessão, sem exceder o número solicitado.</p>
           </div>
           <span className="hidden items-end gap-1 pt-2 sm:flex" aria-hidden="true"><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200 [animation-delay:-.3s]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200 [animation-delay:-.15s]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-200" /></span>
         </div>
       </div>}
 
-      {searchSummary && <>
-        <Alert className={searchSummary.mode === 'ai' ? 'border-violet-300/20 bg-violet-300/[0.045]' : searchSummary.real_questions ? 'border-mint/20 bg-mint/[0.045]' : 'border-amber-300/20 bg-amber-300/[0.045]'}>
-          <ShieldCheck className={`h-4 w-4 ${searchSummary.mode === 'ai' ? 'text-violet-200' : searchSummary.real_questions ? 'text-mint' : 'text-amber-200'}`} />
-          <AlertTitle className={searchSummary.mode === 'ai' ? 'text-violet-100' : searchSummary.real_questions ? 'text-mint' : 'text-amber-100'}>{searchSummary.mode === 'ai' ? 'Modo IA separado — itens autorais, não são questões reais' : searchSummary.real_questions ? searchSummary.web_searched ? 'Acervo local + pesquisa oficial' : 'Acervo local consultado' : 'Nenhuma questão reproduzível encontrada'}</AlertTitle>
-          <AlertDescription>
-            {searchSummary.mode === 'ai'
-              ? `${searchSummary.ai_generated_questions ?? 0} questão(ões) criada(s) para esta sessão. Conteúdo gerado por IA, não é uma questão real nem foi validado como item de prova; não é adicionado ao banco oficial e não altera seu histórico de questões reais.`
-              : searchSummary.message || (searchSummary.search_available ? 'As fontes consultadas não comprovaram permissão de reprodução, enunciado e gabarito suficientes.' : 'A busca web está indisponível. Nenhuma questão artificial foi acrescentada.')}
-            {searchSummary.mode !== 'ai' && Boolean(searchSummary.real_questions) && <span className="mt-1 block text-[11px] text-slate-400">{searchSummary.local_bank_questions ?? 0} do arquivo versionado · {searchSummary.existing_database_questions ?? 0} já no banco · {searchSummary.web_questions ?? 0} novas da web · catálogo {searchSummary.catalog_version || 'versionado'}</span>}
-          </AlertDescription>
-        </Alert>
-        {Boolean(searchSummary.catalog_references?.length) && <details className="group rounded-2xl border border-white/[0.07] bg-white/[0.015]">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-xs font-semibold text-slate-300"><span>Fontes oficiais já catalogadas ({searchSummary.catalog_references?.length})</span><ChevronDown className="h-4 w-4 text-slate-500 transition group-open:rotate-180" /></summary>
-          <div className="grid gap-2 border-t border-white/[0.05] p-3 md:grid-cols-2">
-            {searchSummary.catalog_references?.map((reference) => <article key={reference.id} className="rounded-xl border border-white/[0.05] bg-slate-950/30 p-3">
-              <p className="text-xs font-semibold text-slate-200">{reference.police_civil} · {reference.application_year ? `prova ${reference.application_year}` : reference.notice_year ? `edital ${reference.notice_year}` : 'ano não confirmado'}</p>
-              <p className="mt-1 text-[11px] leading-5 text-slate-400">{reference.contest}{reference.cargo ? ` · ${reference.cargo}` : ''}{reference.bank ? ` · ${reference.bank}` : ''}{reference.question_format ? ` · Formato: ${reference.question_format === 'multipla_escolha' ? 'múltipla escolha' : reference.question_format === 'certo_errado' ? 'certo/errado' : 'misto'}` : ''}</p>
-              <p className="mt-2 text-[10px] leading-4 text-slate-500">{reference.reproduction_permission === 'explicit' ? `Permissão expressa: ${reference.license_terms}` : 'Somente metadados e links oficiais; o texto integral não foi copiado.'}</p>
-              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
-                {reference.question_url && <a href={reference.question_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-300 hover:underline">Prova/caderno <ExternalLink className="h-3 w-3" /></a>}
-                {reference.answer_url && <a href={reference.answer_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-300 hover:underline">Gabarito oficial <ExternalLink className="h-3 w-3" /></a>}
-                {reference.candidate_answer_url && <a href={reference.candidate_answer_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-amber-200 hover:underline">Documento candidato; pareamento pendente <ExternalLink className="h-3 w-3" /></a>}
-                {reference.official_contest_url && <a href={reference.official_contest_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-300 hover:underline">Página do concurso <ExternalLink className="h-3 w-3" /></a>}
-                {reference.application_date_evidence_url && <a href={reference.application_date_evidence_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-300 hover:underline">Evidência da data <ExternalLink className="h-3 w-3" /></a>}
-                {reference.license_evidence_url && <a href={reference.license_evidence_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-200 hover:underline">Evidência da permissão <ExternalLink className="h-3 w-3" /></a>}
-              </div>
-              <p className="mt-2 border-t border-white/[0.04] pt-2 text-[10px] leading-4 text-slate-600">{reference.verification_note}</p>
-            </article>)}
-          </div>
-        </details>}
-      </>}
+      {searchSummary && <Alert className={searchSummary.real_questions || searchSummary.ai_generated_questions ? 'border-mint/20 bg-mint/[0.045]' : 'border-amber-300/20 bg-amber-300/[0.045]'}>
+        <ShieldCheck className={`h-4 w-4 ${searchSummary.real_questions || searchSummary.ai_generated_questions ? 'text-mint' : 'text-amber-200'}`} />
+        <AlertTitle className={searchSummary.real_questions || searchSummary.ai_generated_questions ? 'text-mint' : 'text-amber-100'}>{searchSummary.real_questions || searchSummary.ai_generated_questions ? `Sessão pronta: ${searchSummary.real_questions ?? 0} reais + ${searchSummary.ai_generated_questions ?? 0} autorais por IA` : 'Nenhuma questão pôde ser gerada'}</AlertTitle>
+        <AlertDescription>{searchSummary.message}</AlertDescription>
+      </Alert>}
 
-      {practiceMode === 'real' && questionsQuery.isError && <Alert className="border-rose-400/20 bg-rose-400/[0.06]"><AlertTriangle className="h-4 w-4 text-rose-300" /><AlertTitle className="text-rose-200">Não foi possível carregar as questões</AlertTitle><AlertDescription>Não foi possível atualizar sua lista agora. Tente novamente em instantes.<button onClick={() => questionsQuery.refetch()} className="ml-2 font-semibold text-rose-200 underline">Tentar novamente</button></AlertDescription></Alert>}
-
-      {isQuestionLoading || generating ? <Card className="p-10 text-center"><LoaderCircle className="mx-auto h-6 w-6 animate-spin text-mint" /><p className="mt-3 text-sm text-slate-400">{generating ? practiceMode === 'ai' ? 'Gerando questões autorais…' : 'Consultando o acervo e validando fontes…' : 'Carregando seu banco de questões oficiais…'}</p></Card> : question ? (
+      {generating ? null : question ? (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex flex-wrap items-center gap-2"><SubjectBadge subject={question.subject} /><QuestionSourceBadge source={question.source} metadata={question.metadata} />{question.topic && <Badge variant="secondary">{question.topic}</Badge>}</div><span className="text-xs tabular-nums text-slate-500">Questão {questionIndex + 1} de {questions.length}</span></div>
           <Card className="overflow-hidden">
@@ -493,18 +427,18 @@ export function QuestionPractice({ studyRoleId, initialSubject, userId, onAskTut
                 <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4"><Button size="sm" onClick={nextQuestion}><ArrowRight className="h-3.5 w-3.5" />Próxima questão</Button><Button size="sm" variant="secondary" onClick={() => onAskTutor(question)}><CircleHelp className="h-3.5 w-3.5" />Perguntar ao tutor</Button>{question.metadata && 'url_fonte' in question.metadata && question.metadata.url_fonte && <a href={question.metadata.url_fonte} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs text-cyan-300 hover:underline">Fonte original <ExternalLink className="h-3 w-3" /></a>}</div>
               </div>}
 
-              {!hasAnswered && <div className="mt-6 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-slate-500">{practiceMode === 'ai' ? 'Selecione sua resposta; esta tentativa não será registrada no banco de questões reais.' : question.type === 'certo_errado' ? 'Marque Certo ou Errado para registrar sua resposta.' : 'Selecione uma alternativa para registrar sua resposta.'}</p><Button onClick={submitAnswer} disabled={!selectedAnswer || submitting} className="min-w-36">{submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}{practiceMode === 'ai' ? 'Conferir resposta' : 'Confirmar resposta'}</Button></div>}
+              {!hasAnswered && <div className="mt-6 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-slate-500">{question.source === 'ai_generated' ? 'Item autoral por IA: sua resposta não será registrada nas estatísticas de questões reais.' : question.type === 'certo_errado' ? 'Marque Certo ou Errado para registrar sua resposta.' : 'Selecione uma alternativa para registrar sua resposta.'}</p><Button onClick={submitAnswer} disabled={!selectedAnswer || submitting} className="min-w-36">{submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}{question.source === 'ai_generated' ? 'Conferir resposta' : 'Confirmar resposta'}</Button></div>}
             </CardContent>
           </Card>
           <div className="flex items-center justify-between gap-3"><button onClick={() => { setQuestionIndex((index) => (index - 1 + questions.length) % questions.length); setSelectedAnswer(''); setHasAnswered(false); setQuestionStartedAt(Date.now()); }} className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-200"><ArrowLeft className="h-3.5 w-3.5" /> Anterior</button><div className="flex-1 px-6"><Progress value={((questionIndex + (hasAnswered ? 1 : 0)) / Math.max(questions.length, 1)) * 100} className="h-1" /></div><button onClick={nextQuestion} className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-200">Pular <ArrowRight className="h-3.5 w-3.5" /></button></div>
         </div>
       ) : (
         <Card className="grid min-h-72 place-items-center p-8 text-center">
-          <div className="max-w-md"><span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-400"><Search className="h-5 w-5" /></span><h2 className="mt-4 text-lg font-semibold text-white">{practiceMode === 'ai' ? 'Nenhuma questão autoral gerada nesta sessão' : 'Nenhuma questão real nesta seleção'}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{practiceMode === 'ai' ? isSupabaseConfigured ? 'Escolha uma matéria e gere uma prática autoral. Os itens serão identificados como IA, não serão questões reais e não entrarão no banco oficial.' : 'Conecte o Supabase para gerar itens autorais neste modo separado. O banco de questões reais continua sem conteúdo artificial.' : isSupabaseConfigured ? 'Escolha uma matéria e consulte o acervo. Se faltar conteúdo, pesquisamos fontes oficiais; itens sem permissão de reprodução não são transcritos nem substituídos por questões inventadas.' : 'A pesquisa de fontes oficiais não está conectada. Para manter este banco 100% real, não exibimos questões de demonstração.'}</p>{isSupabaseConfigured && <Button className="mt-5" onClick={generateQuestions} disabled={!userId || !subject || generating}><Search className="h-4 w-4" />{practiceMode === 'ai' ? 'Gerar prática autoral' : 'Buscar questões oficiais'}</Button>}</div>
+          <div className="max-w-md"><span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-400"><Search className="h-5 w-5" /></span><h2 className="mt-4 text-lg font-semibold text-white">Nenhuma questão nesta sessão</h2><p className="mt-2 text-sm leading-6 text-slate-500">{!isSupabaseConfigured ? 'Conecte o Supabase para consultar questões reais e gerar itens autorais com segurança.' : !subject ? 'Escolha uma matéria da trilha para consultar primeiro questões reais verificadas e completar a quantidade com itens originais de IA, se necessário.' : 'Gere uma sessão para consultar questões reais verificadas primeiro. Se faltar quantidade, itens originais de IA completam a sequência; cada questão informa sua origem.'}</p>{isSupabaseConfigured && <Button className="mt-5" onClick={generateQuestions} disabled={!userId || !subject || generating}><Search className="h-4 w-4" />Gerar questões</Button>}</div>
         </Card>
       )}
 
-      {question && questions.length > 1 && <div className="flex items-center justify-between text-xs text-slate-500"><span>Questões disponíveis nesta seleção</span><button onClick={() => { setQuestionIndex(0); setSelectedAnswer(''); setHasAnswered(false); }} className="flex items-center gap-1 font-medium text-slate-400 hover:text-mint"><ChevronDown className="h-3.5 w-3.5" />Reiniciar sessão</button></div>}
+      {question && questions.length > 1 && <div className="flex items-center justify-between text-xs text-slate-500"><span>Questões disponíveis nesta seleção</span><button onClick={() => { setQuestionIndex(0); setSelectedAnswer(''); setHasAnswered(false); }} className="flex items-center gap-1 font-medium text-slate-400 hover:text-mint"><RefreshCw className="h-3.5 w-3.5" />Reiniciar sessão</button></div>}
     </div>
   );
 }
