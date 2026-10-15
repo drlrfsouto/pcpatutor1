@@ -19,15 +19,16 @@ A matriz versionada está em `supabase/data/pcpa-study-priority-matrix.v1.json`.
 
 - Prática, simulados e flashcards com itens autorais de IA, sempre identificados como “IA · autoral · não é real”.
 - Itens de IA orientados pelo edital e por sinais agregados disponíveis de provas anteriores; nenhum enunciado real ou link de questão é exibido ou enviado ao modelo.
-- Simulados com pesos do cargo ativo, cronômetro, modo foco e revisão. Os resultados são temporários e não entram nas estatísticas de questões reais.
-- Flashcards com repetição espaçada local, separados por trilha.
-- Estatísticas por matéria preservam somente o histórico anterior de questões reais; itens de IA não alteram esses números.
-- Tutor com contexto do cargo, edital, matéria e escopo correspondentes.
+- Simulados com pesos do cargo ativo, cronômetro, modo foco, salvamento contínuo das respostas e retomada/consulta de sessões.
+- Flashcards com repetição espaçada SM-2 sincronizada à conta, separados por trilha e com histórico das revisões.
+- Gerações de prática, flashcards, simulados e Tutor registradas com status/contagem; conteúdo de IA, tentativas e erros ficam privados por usuário e cargo.
+- Estatísticas de IA aparecem em painel próprio. O histórico anterior de questões oficiais permanece separado e não recebe itens de IA.
+- Conversas do Tutor podem ser retomadas; o Tutor recebe metadados de matéria/tópico, não o enunciado, alternativas ou gabarito de uma questão.
 - Cadastro com aprovação manual. Confirmar o código OTP comprova controle do e-mail, mas não libera o acesso.
 
 ## Política de questões e fontes
 
-O app não exibe nem aplica enunciados integrais de provas reais em prática, simulados, flashcards ou caderno. A função antiga está aposentada no código e retorna HTTP 410; publique essa versão para substituir a função remota. O conteúdo interativo é gerado por IA, identificado em cada item e não salvo no banco oficial nem contado como desempenho real.
+O app não exibe nem aplica enunciados integrais de provas reais em prática, simulados, flashcards ou caderno. A função antiga está aposentada no código e retorna HTTP 410; publique essa versão para substituir a função remota. O conteúdo interativo é gerado por IA, identificado em cada item e armazenado em tabelas privadas dedicadas — nunca no banco oficial nem nas estatísticas reais.
 
 A IA recebe a trilha, o escopo do edital e apenas sinais agregados disponíveis — contagens e rótulos de matéria, tópico, formato e dificuldade. Não recebe enunciados, alternativas, gabaritos ou comentários de questões reais; cria itens originais e não atribui banca, concurso ou número de prova. Os sinais também respeitam a trilha: padrões de Escrivão orientam somente Escrivão e comparadores de Investigador somente Investigador. As comparações são orientação relativa, não previsão; quando não há dado comparável para a matéria e o cargo, a geração usa o edital sem inventar frequências.
 
@@ -39,7 +40,7 @@ A matriz versionada de cargos continua em `supabase/data/pcpa-study-priority-mat
 
 ## Banco de dados e desenvolvimento
 
-As migrações mais recentes acrescentam `study_role_id` às tentativas, caderno de erros, flashcards e simulados para manter o histórico separado por trilha. Antes de publicar a interface/Edge Functions atualizadas em um projeto Supabase, aplique todas as migrations pendentes — inclusive `20261014170000_pcpa_study_role_sessions.sql` — e publique as funções. **Nenhum deploy é feito automaticamente por este repositório.**
+A migration `20261015100000_pcpa_ai_study_persistence.sql` cria armazenamento privado e separado para gerações/conteúdo de IA, tentativas, caderno de erros, revisões de flashcard, simulados e conversas do Tutor. RLS e verificações no banco limitam os dados à conta aprovada e à trilha ativa. Flashcards antigos que existiam somente no `localStorage` não são importados automaticamente, porque não estavam vinculados com segurança a uma conta; as novas gerações e revisões são sincronizadas. Antes de publicar a interface/Edge Functions atualizadas em um projeto Supabase, aplique todas as migrations pendentes — inclusive `20261014170000_pcpa_study_role_sessions.sql` e a migration de persistência de IA — e publique as funções. **Nenhum deploy ou aplicação de migration é feito automaticamente por este workspace.**
 
 ```bash
 npm ci

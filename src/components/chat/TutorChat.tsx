@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowDown,
@@ -24,6 +24,7 @@ import type { PcpaQuestion } from '@/integrations/supabase/types';
 import { streamTutorReply, type TutorMessage } from '@/lib/tutor-stream';
 import { getStudyRole, type StudyRoleId } from '@/lib/constants/subjects';
 import { toast } from 'sonner';
+import { beginAIGeneration, completeAIGeneration, createAITutorConversation, loadAITutorConversations, loadAITutorMessages, markAIGenerationFailed, saveAITutorMessage, type AITutorConversationRecord } from '@/lib/ai-study-data';
 
 interface TutorChatProps {
   studyRoleId: StudyRoleId;
@@ -40,24 +41,51 @@ const SUGGESTIONS = [
 
 export function TutorChat({ studyRoleId, questionContext, userId, onClearContext }: TutorChatProps) {
   const studyRole = getStudyRole(studyRoleId);
+  const [activeQuestionContext, setActiveQuestionContext] = useState<PcpaQuestion | null>(questionContext);
   const [messages, setMessages] = useState<TutorMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [savedConversations, setSavedConversations] = useState<AITutorConversationRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [openingConversationId, setOpeningConversationId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<AbortController | null>(null);
+  const conversationLoadTokenRef = useRef(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (listRef.current) listRef.current.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, isStreaming]);
 
+  useEffect(() => { setActiveQuestionContext(questionContext); }, [questionContext]);
+
   useEffect(() => () => controllerRef.current?.abort(), []);
+
+  const refreshConversationList = useCallback(async () => {
+    if (!isSupabaseConfigured || !userId) {
+      setSavedConversations([]);
+      setHistoryLoading(false);
+      return;
+    }
+    setHistoryLoading(true);
+    try {
+      setSavedConversations(await loadAITutorConversations(studyRoleId, 30));
+    } catch (error) {
+      console.error('Não foi possível carregar as conversas do Tutor.', error);
+      setSavedConversations([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [studyRoleId, userId]);
+
+  useEffect(() => { void refreshConversationList(); }, [refreshConversationList]);
 
   async function sendMessage(text = draft) {
     const content = text.trim();
-    if (!content || isStreaming) return;
+    if (!content || isStreaming || openingConversationId) return;
     if (!isSupabaseConfigured) {
       toast.error('O Tutor está temporariamente indisponível', { description: 'Você pode continuar estudando pelas questões e flashcards.' });
       return;
@@ -75,22 +103,116 @@ export function TutorChat({ studyRoleId, questionContext, userId, onClearContext
     setIsStreaming(true);
     const controller = new AbortController();
     controllerRef.current = controller;
+    let conversationId = activeConversationId;
+    let generationId: string | null = null;
+    let generationUserId: string | null = null;
+    let assistantContent = '';
+    let assistantStored = false;
+    const userMessageId = crypto.randomUUID();
+    const assistantMessageId = crypto.randomUUID();
+
     try {
-      await streamTutorReply([...messages, userMessage], questionContext, studyRoleId, (chunk) => {
+      if (!conversationId) {
+        conversationId = await createAITutorConversation({
+          role: studyRoleId,
+          title: content.slice(0, 100),
+          contextSubject: activeQuestionContext?.subject ?? null,
+        });
+        setActiveConversationId(conversationId);
+      }
+      await saveAITutorMessage({
+        conversationId,
+        role: studyRoleId,
+        messageRole: 'user',
+        content,
+        messageId: userMessageId,
+      });
+      const generation = await beginAIGeneration({
+        role: studyRoleId,
+        activity: 'tutor',
+        subject: activeQuestionContext?.subject ?? 'Geral',
+        topic: activeQuestionContext?.topic ?? 'tutoria',
+        difficulty: 'intermediaria',
+        format: 'mista',
+        count: 1,
+      });
+      generationId = generation.id;
+      generationUserId = generation.userId;
+      await streamTutorReply([...messages, userMessage], activeQuestionContext, studyRoleId, (chunk) => {
+        assistantContent += chunk;
         setMessages((current) => current.map((message, index) => index === assistantIndex ? { ...message, content: message.content + chunk } : message));
       }, controller.signal);
-    } catch {
-      setErrorMessage('Não foi possível concluir a resposta. Tente novamente em instantes.');
-      setMessages((current) => current.map((item, index) => index === assistantIndex && !item.content ? { ...item, content: 'Não consegui concluir a resposta desta vez. Tente novamente em instantes.' } : item));
+      if (!assistantContent.trim()) throw new Error('O Tutor não retornou uma resposta aproveitável.');
+      await saveAITutorMessage({
+        conversationId,
+        role: studyRoleId,
+        messageRole: 'assistant',
+        content: assistantContent,
+        generationId,
+        messageId: assistantMessageId,
+      });
+      assistantStored = true;
+      await completeAIGeneration(generationId, generation.userId, studyRoleId, []);
+    } catch (error) {
+      if (generationId && generationUserId) await markAIGenerationFailed(generationId, generationUserId, 'tutor_failed');
+      if (conversationId && generationId && assistantContent.trim() && !assistantStored) {
+        try {
+          await saveAITutorMessage({
+            conversationId,
+            role: studyRoleId,
+            messageRole: 'assistant',
+            content: assistantContent,
+            generationId,
+            messageId: assistantMessageId,
+          });
+        } catch (saveError) {
+          console.error('Não foi possível guardar a resposta parcial do Tutor.', saveError);
+        }
+      }
+      if (!controller.signal.aborted) {
+        setErrorMessage('Não foi possível concluir a resposta. Tente novamente em instantes.');
+        setMessages((current) => current.map((item, index) => index === assistantIndex && !item.content
+          ? { ...item, content: 'Não consegui concluir a resposta desta vez. Tente novamente em instantes.' }
+          : item));
+      }
     } finally {
-      setIsStreaming(false);
-      controllerRef.current = null;
+      if (controllerRef.current === controller) {
+        setIsStreaming(false);
+        controllerRef.current = null;
+      }
+      if (conversationId) void refreshConversationList();
       inputRef.current?.focus();
     }
   }
 
-  function startNewChat() {
+  async function openSavedConversation(conversation: AITutorConversationRecord) {
+    const loadToken = ++conversationLoadTokenRef.current;
     controllerRef.current?.abort();
+    setIsStreaming(false);
+    setOpeningConversationId(conversation.id);
+    setActiveConversationId(conversation.id);
+    setActiveQuestionContext(null);
+    setMessages([]);
+    setErrorMessage('');
+    try {
+      const savedMessages = await loadAITutorMessages(conversation.id, studyRoleId);
+      if (loadToken === conversationLoadTokenRef.current) {
+        setMessages(savedMessages.map((message) => ({ role: message.role, content: message.content })));
+      }
+    } catch (error) {
+      if (loadToken === conversationLoadTokenRef.current) setErrorMessage(error instanceof Error ? error.message : 'Não foi possível abrir a conversa.');
+    } finally {
+      if (loadToken === conversationLoadTokenRef.current) setOpeningConversationId(null);
+    }
+  }
+
+  function startNewChat() {
+    conversationLoadTokenRef.current += 1;
+    setActiveQuestionContext(questionContext);
+    setOpeningConversationId(null);
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+    setActiveConversationId(null);
     setMessages([]);
     setDraft('');
     setErrorMessage('');
@@ -106,9 +228,9 @@ export function TutorChat({ studyRoleId, questionContext, userId, onClearContext
         <Button variant="secondary" size="sm" onClick={startNewChat}><Plus className="h-3.5 w-3.5" />Nova conversa</Button>
       </div>
 
-      <div className="mb-4"><Badge variant="secondary" className="gap-1.5"><MessagesSquare className="h-3 w-3 text-violet-300" />Resposta em streaming</Badge></div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Badge variant="secondary" className="gap-1.5"><MessagesSquare className="h-3 w-3 text-violet-300" />Resposta em streaming · histórico privado</Badge>{isSupabaseConfigured && userId && <details className="relative"><summary className="cursor-pointer list-none rounded-full border border-white/[0.07] bg-white/[0.02] px-3 py-1.5 text-[10px] text-slate-400 hover:text-slate-200">Conversas salvas{savedConversations.length ? ` · ${savedConversations.length}` : ''}</summary><div className="absolute right-0 z-20 mt-2 max-h-72 w-[min(90vw,360px)] overflow-y-auto rounded-2xl border border-white/[0.09] bg-[#0c1928] p-2 shadow-xl">{historyLoading ? <p className="px-3 py-2 text-xs text-slate-500">Carregando conversas…</p> : savedConversations.length ? savedConversations.map((conversation) => <button key={conversation.id} onClick={() => void openSavedConversation(conversation)} disabled={openingConversationId === conversation.id} className={`flex w-full items-start gap-2 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/[0.04] ${activeConversationId === conversation.id ? 'bg-white/[0.04]' : ''}`}><MessagesSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-200" /><span className="min-w-0 flex-1"><span className="block truncate text-xs text-slate-200">{conversation.title}</span><span className="mt-1 block text-[9px] text-slate-500">{conversation.context_subject ? `${conversation.context_subject} · ` : ''}{new Date(conversation.updated_at).toLocaleDateString('pt-BR')}</span></span>{openingConversationId === conversation.id && <LoaderCircle className="h-3.5 w-3.5 animate-spin text-violet-200" />}</button>) : <p className="px-3 py-2 text-xs text-slate-500">Suas conversas aparecerão aqui.</p>}</div></details>}</div>
 
-      {questionContext && <Card className="mb-4 flex items-start gap-3 border-cyan-300/15 bg-cyan-300/[0.035] p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-300/10 text-cyan-200"><BookOpen className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><SubjectBadge subject={questionContext.subject} /><span className="text-[10px] text-slate-500">Contexto anexado à conversa</span></div><p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-300">{questionContext.prompt}</p></div><button onClick={onClearContext} title="Remover contexto" className="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-white"><X className="h-4 w-4" /></button></Card>}
+      {activeQuestionContext && <Card className="mb-4 flex items-start gap-3 border-cyan-300/15 bg-cyan-300/[0.035] p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-300/10 text-cyan-200"><BookOpen className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><SubjectBadge subject={activeQuestionContext.subject} /><span className="text-[10px] text-slate-500">Escopo de matéria, sem enunciado</span></div><p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-300">Tópico: {activeQuestionContext.topic}</p></div><button onClick={() => { setActiveQuestionContext(null); onClearContext(); }} title="Remover contexto" className="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-white"><X className="h-4 w-4" /></button></Card>}
 
       {isSupabaseConfigured && !userId && <Alert className="mb-4 border-cyan-300/15 bg-cyan-300/[0.035]"><AlertTriangle className="h-4 w-4 text-cyan-200" /><AlertDescription className="text-xs leading-5 text-slate-300">Entre na sua conta para usar o Tutor.</AlertDescription></Alert>}
       {errorMessage && <Alert className="mb-4 border-rose-300/20 bg-rose-300/[0.045]"><AlertTriangle className="h-4 w-4 text-rose-300" /><AlertDescription className="text-xs text-rose-100/80">{errorMessage}</AlertDescription></Alert>}
@@ -132,10 +254,10 @@ export function TutorChat({ studyRoleId, questionContext, userId, onClearContext
 
         <form onSubmit={(event) => { event.preventDefault(); void sendMessage(); }} className="border-t border-white/[0.06] bg-[#091522]/65 p-3 md:p-4">
           <div className="flex items-end gap-2 rounded-2xl border border-white/[0.07] bg-[#07111f]/75 p-2 focus-within:border-violet-300/25 focus-within:ring-2 focus-within:ring-violet-300/[0.06]">
-            <Textarea ref={inputRef} rows={1} maxLength={3000} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={!isSupabaseConfigured ? 'Tutor temporariamente indisponível' : !userId ? 'Entre na sua conta para conversar com o Tutor' : 'Escreva sua dúvida… (Enter para enviar)'} disabled={!isSupabaseConfigured || !userId || isStreaming} className="min-h-11 max-h-36 resize-y border-0 bg-transparent px-2 py-2 text-sm shadow-none focus:border-0 focus:ring-0" />
-            <Button type="submit" size="icon" disabled={!draft.trim() || isStreaming || !isSupabaseConfigured || !userId} className="h-10 w-10 shrink-0 rounded-xl" aria-label="Enviar mensagem">{isStreaming ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}</Button>
+            <Textarea ref={inputRef} rows={1} maxLength={3000} value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={!isSupabaseConfigured ? 'Tutor temporariamente indisponível' : !userId ? 'Entre na sua conta para conversar com o Tutor' : 'Escreva sua dúvida… (Enter para enviar)'} disabled={!isSupabaseConfigured || !userId || isStreaming || Boolean(openingConversationId)} className="min-h-11 max-h-36 resize-y border-0 bg-transparent px-2 py-2 text-sm shadow-none focus:border-0 focus:ring-0" />
+            <Button type="submit" size="icon" disabled={!draft.trim() || isStreaming || Boolean(openingConversationId) || !isSupabaseConfigured || !userId} className="h-10 w-10 shrink-0 rounded-xl" aria-label="Enviar mensagem">{isStreaming ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}</Button>
           </div>
-          <div className="mt-2 flex items-center justify-between gap-3 px-1"><p className="text-[9px] leading-4 text-slate-600">A IA pode cometer erros. Confirme leis e dispositivos em fonte oficial.</p><span className="shrink-0 text-[9px] tabular-nums text-slate-600">{draft.length}/3000</span></div>
+          <div className="mt-2 flex items-center justify-between gap-3 px-1"><p className="text-[9px] leading-4 text-slate-600">A IA pode cometer erros. Confirme a lei em fonte oficial; não cole enunciados de prova.</p><span className="shrink-0 text-[9px] tabular-nums text-slate-600">{draft.length}/3000</span></div>
         </form>
       </Card>
     </div>

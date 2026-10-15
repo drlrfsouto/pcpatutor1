@@ -29,12 +29,10 @@ export async function streamTutorReply(
     body: JSON.stringify({
       role: studyRoleId,
       messages,
+      // Send only non-sensitive syllabus metadata. Never forward the item statement, options, answer, or commentary.
       questionContext: questionContext ? {
         subject: questionContext.subject,
         topic: questionContext.topic,
-        prompt: questionContext.prompt,
-        answer: questionContext.answer,
-        gabarito_comentado: questionContext.gabarito_comentado,
       } : null,
     }),
   });

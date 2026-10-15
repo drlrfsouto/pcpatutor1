@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getRoleSubject, getStudyRole, getSubjectsForRole, getPriorityLabel, type StudyRoleId, type SubjectName } from '@/lib/constants/subjects';
 import { useStudyStats } from '@/hooks/useStudyStats';
+import { useAIStudyStats } from '@/hooks/useAIStudyStats';
 import { cn, formatDate } from '@/lib/utils';
 import type { AppView } from '@/components/layout/Sidebar';
 
@@ -36,6 +37,8 @@ interface DashboardOverviewProps {
 
 export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice }: DashboardOverviewProps) {
   const { data, isLoading } = useStudyStats(userId, studyRoleId);
+  const { data: aiData, isLoading: aiIsLoading, isError: aiIsError } = useAIStudyStats(userId, studyRoleId);
+  const aiStatsUnavailable = aiIsLoading || aiIsError || !isSupabaseConfigured || !userId;
   const studyRole = getStudyRole(studyRoleId);
   const roleSubjects = getSubjectsForRole(studyRoleId);
   const attempts = data?.attempts ?? [];
@@ -101,6 +104,19 @@ export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice 
         <StatCard title="Erros históricos" value={`${data?.wrongAnswerCount ?? 0}`} detail="Registros antigos; enunciados ocultos" icon={NotebookTabs} iconColor="text-rose-300" iconBg="bg-rose-400/10" />
       </section>
 
+      <section aria-label="Resumo da atividade de IA">
+        <Card className="p-4 md:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="flex items-center gap-2 text-xs font-semibold text-slate-200"><BrainCircuit className="h-3.5 w-3.5 text-violet-200" />Atividade autoral de IA</p><p className="mt-1 text-[10px] text-slate-500">Contabilização privada, separada do histórico oficial</p></div><button onClick={() => onNavigate('stats')} className="text-[10px] font-medium text-violet-200 hover:text-white">Ver métricas →</button></div>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">{[
+            { label: 'Gerações registradas', value: aiStatsUnavailable ? '—' : `${aiData?.generationCalls ?? 0}` },
+            { label: 'Itens de IA salvos', value: aiStatsUnavailable ? '—' : `${aiData?.generatedQuestions ?? 0}` },
+            { label: 'Tentativas · acerto IA', value: aiStatsUnavailable ? '—' : `${aiData?.attempts.length ?? 0} · ${aiData?.accuracy ?? 0}%` },
+            { label: 'Revisões de flashcards', value: aiStatsUnavailable ? '—' : `${aiData?.flashcardReviews ?? 0}` },
+            { label: 'Respostas do Tutor', value: aiStatsUnavailable ? '—' : `${aiData?.tutorReplies ?? 0}` },
+          ].map((item) => <div key={item.label} className="rounded-xl border border-white/[0.05] bg-white/[0.015] px-3 py-2.5"><p className="text-[9px] text-slate-500">{item.label}</p><p className="mt-1 text-sm font-semibold tabular-nums text-slate-200">{item.value}</p></div>)}</div>
+        </Card>
+      </section>
+
       <section className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
         <Card>
           <div className="flex flex-wrap items-start justify-between gap-3 p-5 pb-0 md:p-6 md:pb-0">
@@ -135,7 +151,7 @@ export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice 
           <div className="space-y-1 px-3 pb-3">
             <QuickAction icon={BookOpen} number="01" title="Praticar questões de IA" subtitle="Itens autorais por matéria" onClick={() => onPractice()} />
             <QuickAction icon={BrainCircuit} number="02" title="Revisar flashcards" subtitle="Fixe conceitos com repetição espaçada" onClick={() => onNavigate('flashcards')} />
-            <QuickAction icon={NotebookTabs} number="03" title="Caderno de erros" subtitle="Histórico antigo preservado, sem enunciados" onClick={() => onNavigate('wrong')} />
+            <QuickAction icon={NotebookTabs} number="03" title="Caderno de erros" subtitle="Erros de questões autorais de IA" onClick={() => onNavigate('wrong')} />
           </div>
         </Card>
       </section>

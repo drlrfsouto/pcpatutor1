@@ -43,6 +43,8 @@ export interface PcpaQuestion {
   metadata: QuestionMetadata | Record<string, never> | null;
   needs_verification: boolean;
   created_at: string;
+  /** Generation record ID for private AI-created items; never set for official questions. */
+  ai_generation_id?: string;
   question_fingerprint?: string | null;
   times_answered?: number;
   times_correct?: number;

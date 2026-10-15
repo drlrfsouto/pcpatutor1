@@ -200,7 +200,7 @@ function normalizeQuestion(value: unknown, request: { roleId: StudyRoleId; subje
     .trim();
 
   return {
-    id: `ai-${crypto.randomUUID()}`,
+    id: crypto.randomUUID(),
     subject: request.subject,
     topic: request.topic === "geral" ? "Programa completo do edital" : request.topic,
     type,
