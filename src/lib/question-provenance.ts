@@ -2,8 +2,8 @@ import type { PcpaQuestion, QuestionMetadata } from '@/integrations/supabase/typ
 import { answerLetter } from '@/lib/utils';
 
 /**
- * Domains that can serve as primary sources for official exam questions.
- * Mirrors the allowlist in supabase/functions/pcpa-gerar-questoes/index.ts.
+ * Legacy host allowlist used only when validating historical records for aggregate stats.
+ * The app no longer fetches or displays real exam question text or source links.
  */
 export const OFFICIAL_QUESTION_HOSTS = [
   'cebraspe.org.br',
@@ -58,8 +58,4 @@ export function isVerifiedRealQuestion(question: PcpaQuestion | null | undefined
     return false;
   }
   return true;
-}
-
-export function filterVerifiedRealQuestions(questions: PcpaQuestion[]) {
-  return questions.filter(isVerifiedRealQuestion);
 }

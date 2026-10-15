@@ -7,6 +7,9 @@ import type { StudyRoleId } from '@/lib/constants/subjects';
 export async function recordAttempt(question: PcpaQuestion, selectedAnswer: string, seconds: number, studyRoleId: StudyRoleId) {
   const normalizedAnswer = answerLetter(selectedAnswer);
   const isCorrect = normalizedAnswer === answerLetter(question.answer);
+  if (question.source !== 'concurso_real') {
+    return { id: question.id, isCorrect, persisted: 'none' as const };
+  }
   if (!isSupabaseConfigured || !isUuid(question.id)) {
     const saved = saveDemoAttempt(question, selectedAnswer, seconds, studyRoleId);
     return { id: saved.id, isCorrect, persisted: 'local' as const };

@@ -1,6 +1,6 @@
 # Tutor PCPA — questões, simulados e revisão
 
-Aplicação de estudo para a Polícia Civil do Pará, com geração unificada de questões reais verificáveis e itens autorais por IA, simulados, flashcards, caderno de erros e Tutor.
+Aplicação de estudo para a Polícia Civil do Pará, com questões autorais por IA, simulados, flashcards, caderno de revisão e Tutor.
 
 ## Trilhas por cargo
 
@@ -17,23 +17,23 @@ A matriz versionada está em `supabase/data/pcpa-study-priority-matrix.v1.json`.
 
 ## Recursos
 
-- Banco de questões reais por matéria, tópico e dificuldade, com origem, gabarito, links e permissão de reprodução verificáveis.
-- Um único fluxo na prática dirigida: busca questões reais verificadas primeiro e usa itens autorais de IA apenas para completar a quantidade solicitada, sem excedê-la. A origem é identificada junto a cada questão; itens de IA não entram no banco oficial, nas estatísticas reais nem no caderno de erros.
-- Simulados com pesos do cargo ativo, cronômetro, modo foco e revisão de respostas; o simulado nunca completa o acervo com itens de IA.
-- Flashcards com repetição espaçada e caderno de erros separados por trilha.
-- Estatísticas e progresso por matéria dentro da trilha selecionada.
+- Prática, simulados e flashcards com itens autorais de IA, sempre identificados como “IA · autoral · não é real”.
+- Itens de IA orientados pelo edital e por sinais agregados disponíveis de provas anteriores; nenhum enunciado real ou link de questão é exibido ou enviado ao modelo.
+- Simulados com pesos do cargo ativo, cronômetro, modo foco e revisão. Os resultados são temporários e não entram nas estatísticas de questões reais.
+- Flashcards com repetição espaçada local, separados por trilha.
+- Estatísticas por matéria preservam somente o histórico anterior de questões reais; itens de IA não alteram esses números.
 - Tutor com contexto do cargo, edital, matéria e escopo correspondentes.
 - Cadastro com aprovação manual. Confirmar o código OTP comprova controle do e-mail, mas não libera o acesso.
 
-## Política do banco de questões
+## Política de questões e fontes
 
-O banco oficial contém somente questões reais com origem, gabarito e permissão de reprodução verificáveis; não se completam lacunas por inferência ou IA. O texto integral só é copiado quando há permissão explícita para fins didáticos; sem essa evidência, o sistema mantém internamente apenas metadados e links oficiais, sem exibir um catálogo independente na prática dirigida.
+O app não exibe nem aplica enunciados integrais de provas reais em prática, simulados, flashcards ou caderno. A função antiga está aposentada no código e retorna HTTP 410; publique essa versão para substituir a função remota. O conteúdo interativo é gerado por IA, identificado em cada item e não salvo no banco oficial nem contado como desempenho real.
 
-Na prática dirigida há um único fluxo: questões reais com origem, gabarito e permissão verificados são buscadas primeiro; itens autorais de IA aparecem na mesma sequência apenas para completar a quantidade solicitada, sem excedê-la. Cada questão mostra sua procedência e referências oficiais somente junto ao item correspondente. A função recebe cargo, matéria e tópico do edital — nunca texto de prova — e instrui o modelo a não copiar, reconstruir nem adaptar de perto questões específicas. Itens de IA são marcados como “IA · não é real”, não recebem metadados de concurso, não são salvos no banco oficial e não alteram estatísticas ou caderno de erros reais. Simulados continuam usando apenas questões reais verificadas. Como todo conteúdo de IA, confira explicações e respostas antes de memorizar.
+A IA recebe a trilha, o escopo do edital e apenas sinais agregados disponíveis — contagens e rótulos de matéria, tópico, formato e dificuldade. Não recebe enunciados, alternativas, gabaritos ou comentários de questões reais; cria itens originais e não atribui banca, concurso ou número de prova. Os sinais também respeitam a trilha: padrões de Escrivão orientam somente Escrivão e comparadores de Investigador somente Investigador. As comparações são orientação relativa, não previsão; quando não há dado comparável para a matéria e o cargo, a geração usa o edital sem inventar frequências.
 
-O arquivo versionado `supabase/data/pc-question-bank.v1.json` é consultado antes da web. Se já houver questões adequadas, a busca web não é acionada. Quando necessário, a aplicação reaproveita também questões licenciadas já persistidas e pesquisa na web para preencher lacunas. A deduplicação usa um fingerprint estável da prova e da questão. A busca exibe progresso durante a consulta.
+`supabase/data/pc-question-bank.v1.json` conserva metadados e URLs oficiais para auditoria interna, além de padrões agregados. O campo `questions` permanece vazio; a interface não apresenta catálogo, fontes, gabaritos nem links de questões. Registros históricos no banco não foram apagados, mas as telas de estudo já não carregam seus enunciados. O histórico numérico anterior continua separado dos resultados de IA.
 
-A versão atual do arquivo reúne referências de concursos de Polícias Civis brasileiras e 11 questões integrais do PCDF Escrivão 2021, cujo documento declara permissão de reprodução didática. As outras referências permanecem como metadados e URLs internos e só são exibidas junto à questão correspondente; o fato de uma prova estar em site oficial não é tratado como autorização para copiar seu texto. As questões C/E mantêm as opções Certo e Errado e o gabarito oficial.
+A matriz versionada de cargos continua em `supabase/data/pcpa-study-priority-matrix.v1.json`. Ela preserva a separação entre Delegado (C-206/2020), Investigador, Escrivão e Papiloscopista (C-207/2020), com prioridades relativas, sem prometer incidência futura.
 
 ## Banco de dados e desenvolvimento
 
@@ -50,6 +50,6 @@ Build de validação (valida e sincroniza a matriz antes de compilar):
 npm run build
 ```
 
-Para secrets, migrations, publicação das Edge Functions, SMTP e aprovação manual, consulte [`docs/CONFIGURACAO_TECNICA.md`](docs/CONFIGURACAO_TECNICA.md). Chaves do Gemini e Tavily devem permanecer somente como secrets de Edge Functions no Supabase, nunca no frontend nem em arquivos versionados.
+Para secrets, migrations, publicação das Edge Functions, SMTP e aprovação manual, consulte [`docs/CONFIGURACAO_TECNICA.md`](docs/CONFIGURACAO_TECNICA.md). A chave Gemini deve permanecer somente como secret de Edge Function no Supabase, nunca no frontend nem em arquivo versionado.
 
 > Material de apoio. Consulte o edital aplicável, a legislação atualizada e os documentos e gabaritos oficiais.

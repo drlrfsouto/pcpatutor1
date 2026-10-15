@@ -6,7 +6,6 @@ import {
   BookOpen,
   Check,
   CircleHelp,
-  FileSearch2,
   LoaderCircle,
   MessagesSquare,
   Plus,
@@ -108,7 +107,7 @@ export function TutorChat({ studyRoleId, questionContext, userId, onClearContext
         <Button variant="secondary" size="sm" onClick={startNewChat}><Plus className="h-3.5 w-3.5" />Nova conversa</Button>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2"><Badge variant="secondary" className="gap-1.5"><FileSearch2 className="h-3 w-3 text-cyan-300" />Busca na web para questões</Badge><Badge variant="secondary" className="gap-1.5"><MessagesSquare className="h-3 w-3 text-violet-300" />Resposta em streaming</Badge><Badge variant="secondary" className="gap-1.5"><AlertTriangle className="h-3 w-3 text-amber-200" />Cautela legal</Badge></div>
+      <div className="mb-4 flex flex-wrap gap-2"><Badge variant="secondary" className="gap-1.5"><MessagesSquare className="h-3 w-3 text-violet-300" />Resposta em streaming</Badge><Badge variant="secondary" className="gap-1.5"><AlertTriangle className="h-3 w-3 text-amber-200" />Cautela legal</Badge></div>
 
       {questionContext && <Card className="mb-4 flex items-start gap-3 border-cyan-300/15 bg-cyan-300/[0.035] p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-300/10 text-cyan-200"><BookOpen className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><SubjectBadge subject={questionContext.subject} /><span className="text-[10px] text-slate-500">Contexto anexado à conversa</span></div><p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-300">{questionContext.prompt}</p></div><button onClick={onClearContext} title="Remover contexto" className="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-white"><X className="h-4 w-4" /></button></Card>}
 

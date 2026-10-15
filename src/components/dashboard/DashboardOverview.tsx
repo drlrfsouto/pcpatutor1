@@ -95,16 +95,16 @@ export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice 
       </section>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4" aria-label="Resumo de desempenho">
-        <StatCard title="Questões respondidas" value={isLoading ? '—' : total.toLocaleString('pt-BR')} detail={total ? `${recent.length} nos últimos 7 dias` : 'Sua jornada começa na primeira questão'} icon={BookOpen} iconColor="text-cyan-300" iconBg="bg-cyan-400/10" trend={recent.length ? 'up' : undefined} />
-        <StatCard title="Aproveitamento" value={isLoading ? '—' : `${accuracy}%`} detail={total ? `${correct} acertos em ${total} tentativas` : 'Ainda sem tentativas registradas'} icon={Gauge} iconColor="text-mint" iconBg="bg-mint/10" progress={accuracy} />
+        <StatCard title="Histórico de questões" value={isLoading ? '—' : total.toLocaleString('pt-BR')} detail={total ? `${recent.length} nos últimos 7 dias · IA não incluída` : 'Sem histórico anterior registrado'} icon={BookOpen} iconColor="text-cyan-300" iconBg="bg-cyan-400/10" trend={recent.length ? 'up' : undefined} />
+        <StatCard title="Aproveitamento histórico" value={isLoading ? '—' : `${accuracy}%`} detail={total ? `${correct} acertos em ${total} tentativas antigas` : 'Sem tentativas históricas'} icon={Gauge} iconColor="text-mint" iconBg="bg-mint/10" progress={accuracy} />
         <StatCard title="Sequência atual" value={`${data?.currentStreak ?? 0} ${data?.currentStreak === 1 ? 'dia' : 'dias'}`} detail={`${data?.longestStreak ?? 0} dias é sua melhor sequência`} icon={Flame} iconColor="text-orange-300" iconBg="bg-orange-400/10" />
-        <StatCard title="Para revisar" value={`${data?.wrongAnswerCount ?? 0}`} detail="Erros guardados no seu caderno" icon={NotebookTabs} iconColor="text-rose-300" iconBg="bg-rose-400/10" action={() => onNavigate('wrong')} />
+        <StatCard title="Erros históricos" value={`${data?.wrongAnswerCount ?? 0}`} detail="Registros antigos; enunciados ocultos" icon={NotebookTabs} iconColor="text-rose-300" iconBg="bg-rose-400/10" />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
         <Card>
           <div className="flex flex-wrap items-start justify-between gap-3 p-5 pb-0 md:p-6 md:pb-0">
-            <div><p className="text-sm font-semibold text-slate-100">Ritmo de estudos</p><p className="mt-1 text-xs text-slate-500">Questões respondidas nos últimos 7 dias</p></div>
+            <div><p className="text-sm font-semibold text-slate-100">Ritmo histórico</p><p className="mt-1 text-xs text-slate-500">Registros anteriores; sessões de IA não incluídas</p></div>
             <div className="flex items-center gap-2 rounded-full border border-line bg-white/[0.025] px-2.5 py-1 text-[10px] text-slate-400"><span className="h-2 w-2 rounded-full bg-mint" /> Acertos <span className="ml-1 h-2 w-2 rounded-full bg-slate-600" /> Total</div>
           </div>
           <CardContent className="pt-5 md:px-6">
@@ -133,9 +133,9 @@ export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice 
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-400/10 text-amber-200"><Goal className="h-4 w-4" /></span>
           </div>
           <div className="space-y-1 px-3 pb-3">
-            <QuickAction icon={BookOpen} number="01" title="Resolver 10 questões" subtitle="Prática direcionada por matéria" onClick={() => onPractice()} />
+            <QuickAction icon={BookOpen} number="01" title="Praticar questões de IA" subtitle="Itens autorais por matéria" onClick={() => onPractice()} />
             <QuickAction icon={BrainCircuit} number="02" title="Revisar flashcards" subtitle="Fixe conceitos com repetição espaçada" onClick={() => onNavigate('flashcards')} />
-            <QuickAction icon={NotebookTabs} number="03" title="Retomar seus erros" subtitle={`${data?.wrongAnswerCount ?? 0} questões aguardando revisão`} onClick={() => onNavigate('wrong')} />
+            <QuickAction icon={NotebookTabs} number="03" title="Caderno de erros" subtitle="Histórico antigo preservado, sem enunciados" onClick={() => onNavigate('wrong')} />
           </div>
         </Card>
       </section>
@@ -143,7 +143,7 @@ export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice 
       <section className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
         <Card>
           <div className="flex items-start justify-between gap-4 p-5 pb-4 md:px-6 md:pt-6">
-            <div><p className="text-sm font-semibold text-slate-100">Matérias de {studyRole?.label}</p><p className="mt-1 text-xs text-slate-500">Prioridade relativa pelo edital · acompanhe os pontos fortes e escolha o próximo foco</p></div>
+            <div><p className="text-sm font-semibold text-slate-100">Matérias de {studyRole?.label}</p><p className="mt-1 text-xs text-slate-500">Prioridade relativa pelo edital · métricas refletem apenas o histórico anterior, não sessões de IA</p></div>
             <span className="hidden rounded-full border border-line px-2.5 py-1 text-[10px] text-slate-500 sm:inline-flex">{roleSubjects.length} matérias · {studyRole?.notice}</span>
           </div>
           <div className="grid gap-2 px-4 pb-4 sm:grid-cols-2 md:px-5 md:pb-5">
@@ -160,7 +160,7 @@ export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice 
 
         <div className="space-y-4">
           <Card className="p-5 md:p-6">
-            <div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-slate-100">XP de estudo</p><p className="mt-1 text-xs text-slate-500">Ganhe 10 XP por acerto e 3 XP por revisão</p></div><span className="grid h-9 w-9 place-items-center rounded-xl bg-violet-400/10 text-violet-300"><Zap className="h-4 w-4" /></span></div>
+            <div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-slate-100">XP do histórico anterior</p><p className="mt-1 text-xs text-slate-500">Itens de IA não alteram esta métrica</p></div><span className="grid h-9 w-9 place-items-center rounded-xl bg-violet-400/10 text-violet-300"><Zap className="h-4 w-4" /></span></div>
             <div className="mt-5 flex items-end justify-between"><p className="text-3xl font-semibold text-white">{correct * 10 + Math.max(0, total - correct) * 3}<span className="ml-1 text-xs font-medium text-slate-500">XP</span></p><span className="text-[10px] text-slate-500">Próximo marco: 250 XP</span></div>
             <Progress value={(correct * 10 + Math.max(0, total - correct) * 3) % 250 / 2.5} className="mt-3" />
           </Card>
@@ -179,7 +179,7 @@ export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice 
         </div>
       </section>
 
-      {!isSupabaseConfigured && <div className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.018] px-4 py-3"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300"><Sparkles className="h-4 w-4" /></div><p className="text-xs leading-5 text-slate-400">Versão de demonstração: seu progresso fica salvo neste dispositivo. A pesquisa de novas questões, o Tutor e a sincronização entre aparelhos podem estar limitados.</p></div>}
+      {!isSupabaseConfigured && <div className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.018] px-4 py-3"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300"><Sparkles className="h-4 w-4" /></div><p className="text-xs leading-5 text-slate-400">Versão de demonstração: o progresso fica salvo neste dispositivo. A geração de itens de IA, o Tutor e a sincronização dependem da conexão com o Supabase.</p></div>}
     </div>
   );
 }

@@ -19,7 +19,7 @@ export function useWrongAnswerTracker() {
 
   return useMutation({
     mutationFn: async ({ question, attemptId, wrongAnswer, isCorrect, studyRoleId }: TrackWrongAnswerInput) => {
-      if (isCorrect) return null;
+      if (isCorrect || question.source !== 'concurso_real') return null;
 
       if (!isSupabaseConfigured || !isUuid(question.id)) {
         saveDemoWrongAnswer(question, wrongAnswer, studyRoleId);

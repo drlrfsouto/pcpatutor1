@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-10-14.2",
+  "version": "2026-10-14.3",
   "last_reviewed": "2026-10-14",
   "language": "pt-BR",
   "methodology": {
@@ -15,7 +15,7 @@
       "topic_order": "A ordem dos tópicos é um roteiro de foco baseado no programa do edital e em recorrência comparativa/revisões; não há contagem estatística uniforme por subtema para todos os concursos."
     },
     "comparative_method": "Os pesos da PCPA são calculados exclusivamente pelas tabelas oficiais do C-206/C-207. Provas de PCMG, PCPI e PC-SP e índices de revisão servem apenas para contextualizar temas recorrentes; seus pesos não são transferidos à PCPA.",
-    "question_policy": "Questões reais integrais só podem ser exibidas quando a permissão explícita de reprodução, a origem e o gabarito estiverem comprovados. Caso contrário, a busca mantém apenas metadados e links oficiais. Itens autorais de IA são novos, identificados como IA e não são salvos no banco oficial.",
+    "question_policy": "O app não exibe nem aplica enunciados integrais de provas reais. A prática usa itens originais de IA identificados como IA, orientados pelo edital e somente por sinais agregados de provas anteriores (contagens e rótulos de matéria, tópico, formato e dificuldade); textos de questões reais não são enviados ao modelo. Os itens de IA não são salvos no banco oficial nem contabilizados como desempenho real.",
     "source_validation_note": "O Anexo II e as Tabelas 9.1–9.3 foram conferidos na publicação primária do DOE nº 34.405 (IOEPA); as distribuições também foram cotejadas com a versão oficial retificada do Instituto AOCP. Matérias, pesos e recortes dos três cargos correspondem ao C-207/2020 histórico. Não substitui edital futuro."
   },
   "sources": [

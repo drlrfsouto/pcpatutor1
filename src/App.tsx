@@ -26,7 +26,6 @@ import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import type { PcpaQuestion } from '@/integrations/supabase/types';
 import { useStudyStats } from '@/hooks/useStudyStats';
 import {
-  PCPA_STUDY_MATRIX,
   STUDY_ROLES,
   isOfficialSubject,
   isStudyRoleId,
@@ -241,7 +240,7 @@ function App() {
           <main className="mx-auto max-w-[1500px] px-4 pb-10 pt-5 sm:px-6 md:px-7 md:pt-7 lg:px-9">
             <div className="mb-5 flex items-center justify-between md:hidden"><div><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-slate-500">{pageTitle}</p><p className="mt-1 text-[10px] text-slate-600">Sua preparação para a PCPA</p></div>{isSupabaseConfigured && <MobileUserControl session={session} onSignIn={() => setAuthOpen(true)} onSignOut={() => void signOut()} />}</div>
             {!hasUnapprovedSession && <section className="mb-5 flex flex-col gap-3 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.025] p-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-4" aria-label="Trilha de estudo ativa">
-              <div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-cyan-200/80">Trilha de estudo</p><p className="mt-1 text-xs text-slate-400">{studyRoleId ? 'Matérias e pesos filtrados pelo edital histórico deste cargo. Prioridades são relativas, não previsões.' : 'Escolha um cargo para filtrar matérias e prioridades sem misturar as trilhas.'}</p>{studyRoleId && STUDY_ROLES.find((role) => role.id === studyRoleId)?.notice === 'C-207/2020' && <p className="mt-1.5 max-w-4xl text-[10px] leading-4 text-emerald-200/70">Fonte conferida: {PCPA_STUDY_MATRIX.methodology.source_validation_note}</p>}</div>
+              <div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-cyan-200/80">Trilha de estudo</p><p className="mt-1 text-xs text-slate-400">{studyRoleId ? 'Matérias e pesos filtrados pelo edital histórico deste cargo. Prioridades são relativas, não previsões.' : 'Escolha um cargo para filtrar matérias e prioridades sem misturar as trilhas.'}</p></div>
               <label className="w-full sm:w-72"><span className="sr-only">Cargo e edital de referência</span><select className="field-select" value={studyRoleId ?? ''} onChange={(event) => selectStudyRole(event.target.value)} aria-label="Cargo e edital de referência"><option value="">Escolha um cargo</option>{STUDY_ROLES.map((role) => <option key={role.id} value={role.id}>{role.label} — {role.notice}</option>)}</select></label>
             </section>}
             {hasUnapprovedSession ? (
@@ -253,7 +252,7 @@ function App() {
               />
             ) : (
               <>
-                {!isSupabaseConfigured && activeView !== 'overview' && <div className="mb-5 flex items-center gap-2 rounded-xl border border-amber-300/10 bg-amber-300/[0.025] px-3 py-2.5 text-[10px] leading-4 text-amber-100/70"><Cloud className="h-3.5 w-3.5 shrink-0 text-amber-200" />Modo demonstração: seu progresso fica salvo neste dispositivo. A busca de novas questões e a sincronização entre aparelhos podem estar limitadas.</div>}
+                {!isSupabaseConfigured && activeView !== 'overview' && <div className="mb-5 flex items-center gap-2 rounded-xl border border-amber-300/10 bg-amber-300/[0.025] px-3 py-2.5 text-[10px] leading-4 text-amber-100/70"><Cloud className="h-3.5 w-3.5 shrink-0 text-amber-200" />Modo demonstração: seu progresso fica salvo neste dispositivo. A geração de questões autorais e a sincronização entre aparelhos exigem a conexão aprovada com o Supabase.</div>}
                 <Suspense fallback={<PageLoading />}>
                   {activeView === 'admin' && isAdmin ? <AdminAccessPanel /> : !studyRoleId ? <StudyRoleRequired /> : <>
                     {activeView === 'overview' && <DashboardOverview studyRoleId={studyRoleId} userId={session?.user.id} onNavigate={navigate} onPractice={openPractice} />}

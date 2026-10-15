@@ -5,6 +5,7 @@ import { answerLetter } from '@/lib/utils';
 const ATTEMPTS_KEY = 'tutor-pcpa:demo-attempts';
 const WRONG_KEY = 'tutor-pcpa:demo-wrong-answers';
 const FLASHCARDS_KEY = 'tutor-pcpa:demo-flashcards';
+const AI_FLASHCARD_DECKS_KEY = 'tutor-pcpa:ai-flashcard-decks';
 
 export interface DemoAttempt {
   id: string;
@@ -129,4 +130,16 @@ export function saveFlashcardProgress(progress: FlashcardProgress, studyRoleId?:
   const scopedProgress = { ...progress, study_role_id: studyRoleId };
   const storageKey = studyRoleId ? `${studyRoleId}:${progress.question_id}` : progress.question_id;
   writeJson(FLASHCARDS_KEY, { ...allProgress, [storageKey]: scopedProgress });
+}
+
+export function getAIGeneratedFlashcardDeck(studyRoleId: StudyRoleId, subject: string) {
+  const key = `${studyRoleId}:${subject}`;
+  const decks = readJson<Record<string, PcpaQuestion[]>>(AI_FLASHCARD_DECKS_KEY, {});
+  return decks[key] ?? [];
+}
+
+export function saveAIGeneratedFlashcardDeck(studyRoleId: StudyRoleId, subject: string, questions: PcpaQuestion[]) {
+  const key = `${studyRoleId}:${subject}`;
+  const decks = readJson<Record<string, PcpaQuestion[]>>(AI_FLASHCARD_DECKS_KEY, {});
+  writeJson(AI_FLASHCARD_DECKS_KEY, { ...decks, [key]: questions });
 }
