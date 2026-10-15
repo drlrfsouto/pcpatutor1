@@ -18,11 +18,11 @@ export function QuestionSourceBadge({ source, className }: QuestionSourceBadgePr
         <TooltipTrigger asChild>
           <Badge className={cn('cursor-help gap-1.5 border-violet-400/30 bg-violet-400/10 text-violet-200 hover:bg-violet-400/15', className)}>
             <Sparkles aria-hidden="true" className="h-3 w-3 shrink-0" />
-            <span>IA · autoral · não é real</span>
+            <span>IA · autoral</span>
           </Badge>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
-          Item autoral de IA, orientado pelo edital e, quando disponíveis, por sinais agregados compatíveis. Não é questão real, não recebe referência oficial e não entra no banco ou nas estatísticas reais.
+          Item original gerado por IA.
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

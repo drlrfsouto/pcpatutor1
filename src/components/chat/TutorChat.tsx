@@ -4,7 +4,6 @@ import {
   ArrowDown,
   Bot,
   BookOpen,
-  Check,
   CircleHelp,
   LoaderCircle,
   MessagesSquare,
@@ -103,16 +102,15 @@ export function TutorChat({ studyRoleId, questionContext, userId, onClearContext
   return (
     <div className="animate-float-in mx-auto flex min-h-[calc(100svh-190px)] max-w-6xl flex-col md:min-h-[calc(100vh-170px)]">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-violet-300"><Sparkles className="h-3.5 w-3.5" /> Tutor de estudos</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Tutor IA PCPA</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Tire dúvidas dentro da trilha {studyRole?.label} · {studyRole?.notice}. O Tutor recebe o cargo ativo e o escopo do edital; em legislação, confira a redação em fonte oficial.</p></div>
+        <div><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-violet-300"><Sparkles className="h-3.5 w-3.5" /> Tutor de estudos</div><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Tutor IA PCPA</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Tire dúvidas sobre os temas da trilha {studyRole?.label} · {studyRole?.notice}.</p></div>
         <Button variant="secondary" size="sm" onClick={startNewChat}><Plus className="h-3.5 w-3.5" />Nova conversa</Button>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2"><Badge variant="secondary" className="gap-1.5"><MessagesSquare className="h-3 w-3 text-violet-300" />Resposta em streaming</Badge><Badge variant="secondary" className="gap-1.5"><AlertTriangle className="h-3 w-3 text-amber-200" />Cautela legal</Badge></div>
+      <div className="mb-4"><Badge variant="secondary" className="gap-1.5"><MessagesSquare className="h-3 w-3 text-violet-300" />Resposta em streaming</Badge></div>
 
       {questionContext && <Card className="mb-4 flex items-start gap-3 border-cyan-300/15 bg-cyan-300/[0.035] p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-300/10 text-cyan-200"><BookOpen className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><SubjectBadge subject={questionContext.subject} /><span className="text-[10px] text-slate-500">Contexto anexado à conversa</span></div><p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-300">{questionContext.prompt}</p></div><button onClick={onClearContext} title="Remover contexto" className="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-white"><X className="h-4 w-4" /></button></Card>}
 
-      {!isSupabaseConfigured && <Alert className="mb-4 border-amber-300/20 bg-amber-300/[0.05]"><AlertTriangle className="h-4 w-4 text-amber-200" /><AlertDescription className="text-xs leading-5 text-amber-100/80"><strong className="text-amber-100">Tutor temporariamente indisponível.</strong> Você ainda pode praticar pelas questões, flashcards e simulados disponíveis nesta versão.</AlertDescription></Alert>}
-      {isSupabaseConfigured && !userId && <Alert className="mb-4 border-cyan-300/15 bg-cyan-300/[0.035]"><AlertTriangle className="h-4 w-4 text-cyan-200" /><AlertDescription className="text-xs leading-5 text-slate-300">Entre na sua conta para conversar com o Tutor e guardar seu histórico de estudos.</AlertDescription></Alert>}
+      {isSupabaseConfigured && !userId && <Alert className="mb-4 border-cyan-300/15 bg-cyan-300/[0.035]"><AlertTriangle className="h-4 w-4 text-cyan-200" /><AlertDescription className="text-xs leading-5 text-slate-300">Entre na sua conta para usar o Tutor.</AlertDescription></Alert>}
       {errorMessage && <Alert className="mb-4 border-rose-300/20 bg-rose-300/[0.045]"><AlertTriangle className="h-4 w-4 text-rose-300" /><AlertDescription className="text-xs text-rose-100/80">{errorMessage}</AlertDescription></Alert>}
 
       <Card className="flex min-h-[380px] flex-1 flex-col overflow-hidden sm:min-h-[450px]">
@@ -125,7 +123,7 @@ export function TutorChat({ studyRoleId, questionContext, userId, onClearContext
         <div ref={listRef} onScroll={(event) => { const el = event.currentTarget; setShowScrollButton(el.scrollHeight - el.scrollTop - el.clientHeight > 100); }} className="custom-scrollbar relative flex-1 space-y-5 overflow-y-auto px-4 py-5 md:px-6">
           {isEmpty ? <div className="mx-auto flex min-h-[280px] max-w-2xl flex-col items-center justify-center text-center sm:min-h-[350px]">
             <div className="relative grid h-16 w-16 place-items-center rounded-[22px] border border-violet-300/15 bg-violet-300/[0.06] text-violet-200"><Sparkles className="h-7 w-7" /><span className="absolute -right-2 -top-1 grid h-6 w-6 place-items-center rounded-lg border border-amber-200/15 bg-amber-200/[0.08] text-amber-200"><CircleHelp className="h-3.5 w-3.5" /></span></div>
-            <p className="mt-5 text-lg font-semibold text-white">Olá! Vamos estudar juntos.</p><p className="mt-2 max-w-lg text-sm leading-6 text-slate-400">Pergunte sobre uma questão, peça uma explicação passo a passo ou revise um conceito. Em temas jurídicos, confira sempre a lei seca em fonte oficial.</p>
+            <p className="mt-5 text-lg font-semibold text-white">Olá! Vamos estudar juntos.</p><p className="mt-2 max-w-lg text-sm leading-6 text-slate-400">Peça uma explicação passo a passo ou revise um conceito do edital.</p>
             <div className="mt-6 grid w-full gap-2 sm:grid-cols-3">{SUGGESTIONS.map((suggestion, index) => <button key={suggestion} onClick={() => sendMessage(suggestion)} disabled={!isSupabaseConfigured || !userId} className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 text-left text-[11px] leading-5 text-slate-400 transition hover:border-violet-300/20 hover:bg-violet-300/[0.04] hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-50"><span className="mb-2 block text-[9px] font-bold uppercase tracking-[.13em] text-violet-200/70">Sugestão 0{index + 1}</span>{suggestion}</button>)}</div>
           </div> : messages.map((message, index) => <MessageBubble key={`${index}-${message.role}`} message={message} isStreaming={isStreaming && index === messages.length - 1} />)}
           {isStreaming && messages[messages.length - 1]?.content === '' && <div className="flex items-center gap-2 pl-11 text-xs text-slate-500"><LoaderCircle className="h-3.5 w-3.5 animate-spin text-violet-300" />Organizando uma resposta…</div>}
@@ -140,7 +138,6 @@ export function TutorChat({ studyRoleId, questionContext, userId, onClearContext
           <div className="mt-2 flex items-center justify-between gap-3 px-1"><p className="text-[9px] leading-4 text-slate-600">A IA pode cometer erros. Confirme leis e dispositivos em fonte oficial.</p><span className="shrink-0 text-[9px] tabular-nums text-slate-600">{draft.length}/3000</span></div>
         </form>
       </Card>
-      <p className="mt-3 flex items-center justify-center gap-1.5 text-[10px] text-slate-600"><Check className="h-3 w-3 text-mint/60" /> Confira sempre as referências legais em fontes oficiais</p>
     </div>
   );
 }
@@ -152,7 +149,6 @@ function MessageBubble({ message, isStreaming }: { message: TutorMessage; isStre
     <div className={`max-w-[88%] rounded-2xl px-4 py-3 md:max-w-[78%] ${isAssistant ? 'rounded-tl-md border border-white/[0.06] bg-white/[0.025]' : 'rounded-tr-md border border-mint/10 bg-mint/[0.07]'}`}>
       <p className="mb-1 text-[9px] font-bold uppercase tracking-[.14em] text-slate-500">{isAssistant ? 'Tutor PCPA' : 'Você'}</p>
       {message.content ? <p className="whitespace-pre-wrap text-sm leading-6 text-slate-200">{message.content}{isStreaming && <span className="ml-1 inline-block h-4 w-1 animate-pulse rounded-full bg-violet-300 align-middle" />}</p> : <LoaderCircle className="h-4 w-4 animate-spin text-violet-200" />}
-      {isAssistant && message.content && <div className="mt-3 border-t border-white/[0.05] pt-2 text-[9px] text-slate-600">Lembrete: verifique referências legais na fonte oficial.</div>}
     </div>
   </div>;
 }

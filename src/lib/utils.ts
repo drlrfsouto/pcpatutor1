@@ -30,7 +30,7 @@ export function questionOptionDetails(type: string, option: string, index: numbe
 }
 
 export function questionExplanationLabel(metadata?: { explanation_type?: string } | null) {
-  return metadata?.explanation_type === 'official' ? 'Justificativa oficial' : 'Comentário didático assistido por IA';
+  return metadata?.explanation_type === 'official' ? 'Justificativa oficial' : 'Comentário de IA';
 }
 
 export function formatDate(date: string | Date, options?: Intl.DateTimeFormatOptions) {

@@ -45,10 +45,10 @@ export function AccessPending({ state, email, onRefresh, onSignOut }: AccessPend
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-slate-400">
             {isChecking
-              ? 'Estamos consultando a situação do seu cadastro. Isso pode levar alguns instantes.'
+              ? 'Consultando a situação do cadastro…'
               : isError
-                ? 'Não conseguimos confirmar se sua conta foi liberada. Por segurança, as ferramentas vinculadas à conta continuam bloqueadas. Tente verificar novamente.'
-                : 'Seu e-mail foi confirmado, mas o acesso às ferramentas vinculadas à conta aguarda aprovação. Você poderá atualizar esta tela para consultar a situação.'}
+                ? 'Não foi possível confirmar o acesso. Tente novamente.'
+                : 'E-mail confirmado. O acesso aguarda aprovação manual.'}
           </p>
           {email && <p className="mt-3 text-xs text-slate-500">Conta: <span className="font-medium text-slate-300">{email}</span></p>}
           <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
@@ -61,7 +61,6 @@ export function AccessPending({ state, email, onRefresh, onSignOut }: AccessPend
               Sair da conta
             </Button>
           </div>
-          <p className="mt-5 text-xs leading-5 text-slate-500">Enquanto aguarda, você pode sair da conta e continuar estudando no modo demonstração.</p>
         </CardContent>
       </Card>
     </div>

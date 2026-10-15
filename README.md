@@ -31,6 +31,8 @@ O app não exibe nem aplica enunciados integrais de provas reais em prática, si
 
 A IA recebe a trilha, o escopo do edital e apenas sinais agregados disponíveis — contagens e rótulos de matéria, tópico, formato e dificuldade. Não recebe enunciados, alternativas, gabaritos ou comentários de questões reais; cria itens originais e não atribui banca, concurso ou número de prova. Os sinais também respeitam a trilha: padrões de Escrivão orientam somente Escrivão e comparadores de Investigador somente Investigador. As comparações são orientação relativa, não previsão; quando não há dado comparável para a matéria e o cargo, a geração usa o edital sem inventar frequências.
 
+Avisos de conferência legal são discretos. Quando há correspondência exata com um trecho legal previamente validado, a tela oferece o texto em um painel recolhido e um link oficial; o app não pede à IA para redigir a lei.
+
 `supabase/data/pc-question-bank.v1.json` conserva metadados e URLs oficiais para auditoria interna, além de padrões agregados. O campo `questions` permanece vazio; a interface não apresenta catálogo, fontes, gabaritos nem links de questões. Registros históricos no banco não foram apagados, mas as telas de estudo já não carregam seus enunciados. O histórico numérico anterior continua separado dos resultados de IA.
 
 A matriz versionada de cargos continua em `supabase/data/pcpa-study-priority-matrix.v1.json`. Ela preserva a separação entre Delegado (C-206/2020), Investigador, Escrivão e Papiloscopista (C-207/2020), com prioridades relativas, sem prometer incidência futura.

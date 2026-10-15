@@ -252,7 +252,7 @@ function App() {
               />
             ) : (
               <>
-                {!isSupabaseConfigured && activeView !== 'overview' && <div className="mb-5 flex items-center gap-2 rounded-xl border border-amber-300/10 bg-amber-300/[0.025] px-3 py-2.5 text-[10px] leading-4 text-amber-100/70"><Cloud className="h-3.5 w-3.5 shrink-0 text-amber-200" />Modo demonstração: seu progresso fica salvo neste dispositivo. A geração de questões autorais e a sincronização entre aparelhos exigem a conexão aprovada com o Supabase.</div>}
+                {!isSupabaseConfigured && activeView !== 'overview' && <div role="status" className="mb-3 flex items-center gap-1.5 px-1 text-[10px] text-slate-500"><Cloud className="h-3 w-3 shrink-0" />Modo demonstração · geração e sincronização indisponíveis</div>}
                 <Suspense fallback={<PageLoading />}>
                   {activeView === 'admin' && isAdmin ? <AdminAccessPanel /> : !studyRoleId ? <StudyRoleRequired /> : <>
                     {activeView === 'overview' && <DashboardOverview studyRoleId={studyRoleId} userId={session?.user.id} onNavigate={navigate} onPractice={openPractice} />}

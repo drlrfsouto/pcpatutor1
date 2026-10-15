@@ -179,7 +179,7 @@ export function DashboardOverview({ studyRoleId, userId, onNavigate, onPractice 
         </div>
       </section>
 
-      {!isSupabaseConfigured && <div className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.018] px-4 py-3"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300"><Sparkles className="h-4 w-4" /></div><p className="text-xs leading-5 text-slate-400">Versão de demonstração: o progresso fica salvo neste dispositivo. A geração de itens de IA, o Tutor e a sincronização dependem da conexão com o Supabase.</p></div>}
+      {!isSupabaseConfigured && <p role="status" className="flex items-center gap-1.5 px-1 text-[10px] text-slate-500"><Sparkles className="h-3 w-3" />Demonstração · geração de IA e sincronização indisponíveis</p>}
     </div>
   );
 }
